@@ -21,6 +21,19 @@
     <string name="v3_3">Yhteinen taukotila aulassa</string>
     <string name="v3_4">Kokoushuone</string>
 
+
+
+    <string name="v5_1">Keskittymistä</string>
+    <string name="v5_2">Kommunikaatiota</string>
+    <string name="v5_3">Häiriötöntä työskentelyä</string>
+    <string name="v5_4">Ongelmanratkaisua</string>
+    <string name="v5_5">Uuden tiedon tai tuotteen tuottamista</string>
+    <string name="v5_6">Innovointia</string>
+    <string name="v5_7">Asioiden esittämistä</string>
+    <string name="v5_8">Yksityisyyttä</string>
+    <string name="v5_9">Tukiko yhteisöllinen vaiheistus työskentelyä?</string>
+
+
     <string name="instructions_v1">Valitse tilanne</string>
     <string name="instructions_v2">Valitse tilanne asiakastapaamiselle</string>
     <string name="instructions_v3">Valitse tila</string>

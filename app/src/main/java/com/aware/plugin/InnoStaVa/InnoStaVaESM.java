@@ -56,14 +56,11 @@ public class InnoStaVaESM extends Activity {
             public void onClick(View v) {
                 int radio_button_1 = v1_radio_group.getCheckedRadioButtonId(); //if -1, no radio button was checked
 
-                Log.d("Niels", String.valueOf(radio_button_1));
-
                 if (radio_button_1 != -1) {
                     RadioButton RB_radio_button_1 = (RadioButton) findViewById(radio_button_1);
                     String radio_button_1_answer = String.valueOf(RB_radio_button_1.getText());
 
                     // put answer to var
-
                     answers.put("V1", radio_button_1_answer);
 
                     if (radio_button_1_answer == getApplicationContext().getString(R.string.v1_5)) {
@@ -94,9 +91,12 @@ public class InnoStaVaESM extends Activity {
 
                 if (radio_button_2 != -1) {
                     RadioButton RB_radio_button_2 = (RadioButton) findViewById(radio_button_2);
+                    String radio_button_2_answer = String.valueOf(RB_radio_button_2.getText());
+
+                    // put answer to var
                     answers.put("V2", String.valueOf(RB_radio_button_2.getText()));
 
-                    if (radio_button_2 == 4) {
+                    if (radio_button_2_answer == getApplicationContext().getString(R.string.v2_4)) {
                         prepare_v6();
                     } else {
                         prepare_v3();
@@ -121,31 +121,34 @@ public class InnoStaVaESM extends Activity {
         v3_next.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
 
-                // TODO
+                boolean something_checked = false;
 
-                prepare_v4();
-//                float v3_1_value = v3_1.get();
-//                float esm_likert_2 = esm_likert_3_2.getRating();
-//                float esm_likert_3 = esm_likert_3_3.getRating();
-//                float esm_likert_4 = esm_likert_3_4.getRating();
-//
-//                if (radio_button_2 != -1) {
-//                    // put answer to var
-//                    try {
-//                        answers.put("V1", radio_button_2);
-//                    } catch (JSONException e) {
-//                        e.printStackTrace();
-//                    }
-//
-//                    if (radio_button_2 == 4) {
-//                        prepare_v6();
-//                    } else {
-//                        prepare_v3();
-//                    }
-//                } else {
-//                    Toast toast = Toast.makeText(getApplicationContext(), warning, Toast.LENGTH_SHORT);
-//                    toast.show();
-//                }
+                ArrayList<String> v3_answer = new ArrayList<>();
+                v3_answer.clear();
+
+                if(v3_1.isChecked()) {
+                    something_checked = true;
+                    v3_answer.add(v3_1.getText().toString() + ";");
+                } if (v3_2.isChecked()) {
+                    something_checked = true;
+                    v3_answer.add(v3_2.getText().toString() + ";");
+                } if (v3_3.isChecked()) {
+                    something_checked = true;
+                    v3_answer.add(v3_3.getText().toString() + ";");
+                } if (v3_4.isChecked()) {
+                    something_checked = true;
+                    v3_answer.add(v3_4.getText().toString() + ";");
+                }
+
+                if (something_checked == true) {
+                    // put answer to var
+                    answers.put("V3", String.valueOf(v3_answer));
+
+                    prepare_v4();
+                }  else {
+                    Toast toast = Toast.makeText(getApplicationContext(), warning, Toast.LENGTH_SHORT);
+                    toast.show();
+                }
             }
         });
     }
@@ -157,7 +160,7 @@ public class InnoStaVaESM extends Activity {
         v4_next.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
 
-                // TODO
+
 
                 prepare_v5();
             }
