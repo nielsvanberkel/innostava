@@ -82,8 +82,12 @@ public class Plugin extends Aware_Plugin {
         }
 
 
+        // start aware and plugins
+        Aware.startAWARE();
 
-
+        Aware.startPlugin(this, "com.aware.plugin.google.activity_recognition");
+        Aware.setSetting(this,  "frequency_plugin_bluetooth_beacon_detect", 30000);
+        Aware.startPlugin(this, "com.aware.plugin.bluetooth_beacon_detect");
 
         //Activate plugin -- do this ALWAYS as the last thing (this will restart your own plugin and apply the settings)
         Aware.startPlugin(this, "com.aware.plugin.InnoStaVa");
@@ -164,7 +168,8 @@ public class Plugin extends Aware_Plugin {
     @Override
     public void onDestroy() {
         super.onDestroy();
-
+        Aware.stopPlugin(this, "com.aware.plugin.google.activity_recognition");
+        Aware.stopPlugin(this, "com.aware.plugin.bluetooth_beacon_detect");
         //Stop AWARE
         Aware.stopAWARE();
     }

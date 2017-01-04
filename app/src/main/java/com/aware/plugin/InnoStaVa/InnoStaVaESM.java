@@ -19,6 +19,9 @@ import com.aware.Aware_Preferences;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+
 /**
  * Created by niels on 22/11/16.
  */
@@ -27,7 +30,7 @@ public class InnoStaVaESM extends Activity {
 
     CharSequence warning = "Please complete all questions!";
     long start_time;
-    JSONObject answers = new JSONObject();
+    HashMap<String, String> answers = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,11 +63,8 @@ public class InnoStaVaESM extends Activity {
                     String radio_button_1_answer = String.valueOf(RB_radio_button_1.getText());
 
                     // put answer to var
-                    try {
-                        answers.put("V1", radio_button_1_answer);
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
+
+                    answers.put("V1", radio_button_1_answer);
 
                     if (radio_button_1_answer == getApplicationContext().getString(R.string.v1_5)) {
                         prepare_v2();
@@ -81,6 +81,7 @@ public class InnoStaVaESM extends Activity {
 
     private void prepare_v2() {
         setContentView(R.layout.v_2);
+        insert_db();
 
         final RadioGroup v2_radio_group = (RadioGroup) findViewById(R.id.v2_radio_group);
 
@@ -90,13 +91,10 @@ public class InnoStaVaESM extends Activity {
 
                 int radio_button_2 = v2_radio_group.getCheckedRadioButtonId(); //if -1, no radio button was checked
 
+
                 if (radio_button_2 != -1) {
-                    // put answer to var
-                    try {
-                        answers.put("V1", radio_button_2);
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
+                    RadioButton RB_radio_button_2 = (RadioButton) findViewById(radio_button_2);
+                    answers.put("V2", String.valueOf(RB_radio_button_2.getText()));
 
                     if (radio_button_2 == 4) {
                         prepare_v6();
@@ -113,6 +111,7 @@ public class InnoStaVaESM extends Activity {
 
     private void prepare_v3() {
         setContentView(R.layout.v_3);
+        insert_db();
         final CheckBox v3_1 = (CheckBox) findViewById(R.id.v3_1);
         final CheckBox v3_2 = (CheckBox) findViewById(R.id.v3_2);
         final CheckBox v3_3 = (CheckBox) findViewById(R.id.v3_3);
@@ -153,7 +152,7 @@ public class InnoStaVaESM extends Activity {
 
     private void prepare_v4() {
         setContentView(R.layout.v_4);
-
+        insert_db();
         final Button v4_next = (Button) findViewById(R.id.v4_next);
         v4_next.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -167,7 +166,7 @@ public class InnoStaVaESM extends Activity {
 
     private void prepare_v5() {
         setContentView(R.layout.v_5);
-
+        insert_db();
         final Button v5_next = (Button) findViewById(R.id.v5_next);
         v5_next.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -181,14 +180,14 @@ public class InnoStaVaESM extends Activity {
 
     private void prepare_v6() {
         setContentView(R.layout.v_6);
-
+        insert_db();
         final Button v6_next = (Button) findViewById(R.id.v6_next);
         v6_next.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
 
                 // TODO
 
-                //insert_db();
+                insert_db();
 
                 // close application
                 finish();
@@ -197,13 +196,23 @@ public class InnoStaVaESM extends Activity {
     }
 
 
-    private void insert_db(@NonNull String question_id, @NonNull String answer) {
+    private void insert_db() {
         ContentValues context_data = new ContentValues();
-        context_data.put(Provider.InnoStaVa_data.TIMESTAMP, System.currentTimeMillis());
-        context_data.put(Provider.InnoStaVa_data.START_TIME, String.valueOf(start_time));
-        context_data.put(Provider.InnoStaVa_data.DEVICE_ID, Aware.getSetting(getApplicationContext(), Aware_Preferences.DEVICE_ID));
-        context_data.put(Provider.InnoStaVa_data.ANSWER, answer);
-        context_data.put(Provider.InnoStaVa_data.QUESTION_ID, question_id);
-        getContentResolver().insert(Provider.InnoStaVa_data.CONTENT_URI, context_data);
+        ArrayList<String> added_keys = new ArrayList<>();
+        // add each answer
+        for (String question_key : answers.keySet()) {
+            context_data.put(Provider.InnoStaVa_data.TIMESTAMP, System.currentTimeMillis());
+            context_data.put(Provider.InnoStaVa_data.START_TIME, String.valueOf(start_time));
+            context_data.put(Provider.InnoStaVa_data.DEVICE_ID, Aware.getSetting(getApplicationContext(), Aware_Preferences.DEVICE_ID));
+            context_data.put(Provider.InnoStaVa_data.ANSWER, answers.get(question_key));
+            context_data.put(Provider.InnoStaVa_data.QUESTION_ID, question_key);
+            getContentResolver().insert(Provider.InnoStaVa_data.CONTENT_URI, context_data);
+            added_keys.add(question_key);
+        }
+        // remove the added ones from answers
+        for (String removed_key : added_keys) {
+            answers.remove(removed_key);
+        }
+
     }
 }
