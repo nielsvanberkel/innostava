@@ -3,6 +3,7 @@ package com.aware.plugin.InnoStaVa;
 import android.app.Activity;
 import android.content.ContentValues;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -187,7 +188,7 @@ public class InnoStaVaESM extends Activity {
 
                 // TODO
 
-                insert_db();
+                //insert_db();
 
                 // close application
                 finish();
@@ -196,14 +197,13 @@ public class InnoStaVaESM extends Activity {
     }
 
 
-    private void insert_db() {
+    private void insert_db(@NonNull String question_id, @NonNull String answer) {
         ContentValues context_data = new ContentValues();
-        context_data.put(Provider.InnoStaVa_data.ANSWERS, String.valueOf(answers));
         context_data.put(Provider.InnoStaVa_data.TIMESTAMP, System.currentTimeMillis());
         context_data.put(Provider.InnoStaVa_data.START_TIME, String.valueOf(start_time));
         context_data.put(Provider.InnoStaVa_data.DEVICE_ID, Aware.getSetting(getApplicationContext(), Aware_Preferences.DEVICE_ID));
-        context_data.put(Provider.InnoStaVa_data.PARTICIPANT_GROUP, Aware.getSetting(getApplicationContext(), Settings.GROUP));
-
+        context_data.put(Provider.InnoStaVa_data.ANSWER, answer);
+        context_data.put(Provider.InnoStaVa_data.QUESTION_ID, question_id);
         getContentResolver().insert(Provider.InnoStaVa_data.CONTENT_URI, context_data);
     }
 }
