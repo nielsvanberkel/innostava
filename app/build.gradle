@@ -82,7 +82,8 @@ dependencies {
     compile "com.android.support:appcompat-v7:${support_libs}"
 //    compile "com.awareframework:aware-core:${aware_libs}@aar"
     compile "com.github.denzilferreira:aware-client:development-SNAPSHOT"
-
+    compile "com.github.denzilferreira:com.aware.plugin.google.activity_recognition:development-SNAPSHOT"
+    compile 'com.github.akuvisur:bluetooth_beacon_detect:-SNAPSHOT'
     compile 'com.android.support:appcompat-v7:25.1.0'
     compile 'com.android.support:cardview-v7:25.1.0'
     compile 'com.android.support:recyclerview-v7:25.1.0'

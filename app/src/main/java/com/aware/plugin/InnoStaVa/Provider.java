@@ -55,8 +55,8 @@ public class Provider extends ContentProvider {
         public static final String CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/vnd.com.aware.plugin.InnoStaVa.provider.questionnaire"; //modify me
         public static final String CONTENT_ITEM_TYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE + "/vnd.com.aware.plugin.InnoStaVa.provider.questionnaire"; //modify me
 
-        public static final String PARTICIPANT_GROUP = "participant_group";
-        public static final String ANSWERS = "answers";
+        public static final String QUESTION_ID = "question_id";
+        public static final String ANSWER = "answer";
     }
 
     //Define each database table fields
@@ -65,8 +65,8 @@ public class Provider extends ContentProvider {
                     InnoStaVa_data.START_TIME + " real default 0," +
                     InnoStaVa_data.TIMESTAMP + " real default 0," +
                     InnoStaVa_data.DEVICE_ID + " text default ''," +
-                    InnoStaVa_data.PARTICIPANT_GROUP + " text default ''," +
-                    InnoStaVa_data.ANSWERS + " text default ''";
+                    InnoStaVa_data.QUESTION_ID + " text default ''," +
+                    InnoStaVa_data.ANSWER + " text default ''";
     /**
      * Share the fields with AWARE so we can replicate the table schema on the server
      */
@@ -114,8 +114,8 @@ public class Provider extends ContentProvider {
         tableOneHash.put(InnoStaVa_data.START_TIME, InnoStaVa_data.START_TIME);
         tableOneHash.put(InnoStaVa_data.TIMESTAMP, InnoStaVa_data.TIMESTAMP);
         tableOneHash.put(InnoStaVa_data.DEVICE_ID, InnoStaVa_data.DEVICE_ID);
-        tableOneHash.put(InnoStaVa_data.PARTICIPANT_GROUP, InnoStaVa_data.PARTICIPANT_GROUP);
-        tableOneHash.put(InnoStaVa_data.ANSWERS, InnoStaVa_data.ANSWERS);
+        tableOneHash.put(InnoStaVa_data.QUESTION_ID, InnoStaVa_data.QUESTION_ID);
+        tableOneHash.put(InnoStaVa_data.ANSWER, InnoStaVa_data.ANSWER);
 
         return true;
     }
