@@ -34,7 +34,14 @@ public class InnoStaVa extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        Intent aware = new Intent(this, Aware.class);
+        startService(aware);
+
         setContentView(R.layout.card);
+        device_id = (TextView) findViewById(R.id.device_id);
+        join_study = (Button) findViewById(R.id.join_study);
+        set_settings = (Button) findViewById(R.id.set_settings);
+        sync_data = (Button) findViewById(R.id.sync_data);
 
         REQUIRED_PERMISSIONS.add(android.Manifest.permission.WRITE_EXTERNAL_STORAGE);
 
@@ -62,22 +69,22 @@ public class InnoStaVa extends AppCompatActivity {
             Toast.makeText(getApplicationContext(), "Thanks for joining!", Toast.LENGTH_SHORT).show();
         }
 
-        Intent framework = new Intent(this, Aware.class);
-        startService(framework);
+        Intent startPlugin = new Intent(this, Plugin.class);
+        startService(startPlugin);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
 
-//        String device_id_string = "UUID : " + Aware.getSetting(this, Aware_Preferences.DEVICE_ID);
-//        device_id.setText(device_id_string);
-//
-//        if (Aware.isStudy(getApplicationContext())) {
-//            join_study.setEnabled(false);
-//            set_settings.setEnabled(false);
-//        } else {
-//            sync_data.setVisibility(View.INVISIBLE);
-//        }
+        String device_id_string = "UUID : " + Aware.getSetting(this, Aware_Preferences.DEVICE_ID);
+        device_id.setText(device_id_string);
+
+        if (Aware.isStudy(getApplicationContext())) {
+            join_study.setEnabled(false);
+            set_settings.setEnabled(false);
+        } else {
+            sync_data.setVisibility(View.INVISIBLE);
+        }
     }
 }

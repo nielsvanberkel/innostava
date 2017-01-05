@@ -4,9 +4,11 @@ import android.Manifest;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -25,8 +27,96 @@ import org.json.JSONException;
 import java.util.Calendar;
 
 public class Plugin extends Aware_Plugin {
-
     public static String broadcast_receiver = "ACTION_INNOSTAVA_ESM";
+    MyReceiver myReceiver;
+
+    private static final int ESM_TRIGGER_THRESHOLD_MILLIS = 60000;
+
+    private final int ACTIVITY_STILL = 3;
+
+    private String location = "unknown";
+    private long location_changed = System.currentTimeMillis();
+    private int activity = -1;
+    private long activity_changed = System.currentTimeMillis();
+
+    private EsmContextReceiver esmContextReceiver;
+    private class EsmContextReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            // nearest beacon
+            if (intent.getAction().equals(com.aware.plugin.bluetooth_beacon_detect.Plugin.ACTION_AWARE_PLUGIN_BT_BEACON_NEAREST)) {
+                Log.d(TAG, "nearest beacon: "  + intent.getStringExtra(com.aware.plugin.bluetooth_beacon_detect.Provider.BluetoothBeacon_Data.MAC_ADDRESS));
+                if (!intent.getStringExtra(com.aware.plugin.bluetooth_beacon_detect.Provider.BluetoothBeacon_Data.MAC_ADDRESS).equals(location)) {
+                    location = intent.getStringExtra(com.aware.plugin.bluetooth_beacon_detect.Provider.BluetoothBeacon_Data.MAC_ADDRESS);
+                    location_changed = System.currentTimeMillis();
+                }
+                else if (System.currentTimeMillis() - ESM_TRIGGER_THRESHOLD_MILLIS > location_changed &&
+                        System.currentTimeMillis() - ESM_TRIGGER_THRESHOLD_MILLIS > activity_changed) {
+                    sendESM();
+                }
+            }
+            else if (intent.getAction().equals(com.aware.plugin.google.activity_recognition.Plugin.ACTION_AWARE_GOOGLE_ACTIVITY_RECOGNITION)) {
+                Log.d(TAG, "activity: " + intent.getIntExtra(com.aware.plugin.google.activity_recognition.Plugin.EXTRA_ACTIVITY, -1));
+                if (intent.getIntExtra(com.aware.plugin.google.activity_recognition.Plugin.EXTRA_CONFIDENCE, 100) > 75
+                        && !(intent.getIntExtra(com.aware.plugin.google.activity_recognition.Plugin.EXTRA_ACTIVITY, -1) == activity)) {
+                    activity = intent.getIntExtra(com.aware.plugin.google.activity_recognition.Plugin.EXTRA_ACTIVITY, -1);
+                    activity_changed = System.currentTimeMillis();
+                }
+                else if (System.currentTimeMillis() - ESM_TRIGGER_THRESHOLD_MILLIS > location_changed &&
+                        System.currentTimeMillis() - ESM_TRIGGER_THRESHOLD_MILLIS > activity_changed
+                        && activity == ACTIVITY_STILL) {
+                    sendESM();
+                }
+            }
+        }
+    }
+
+    private final String ESM_LIMITS = "esm_limits";
+    private final String MORNING_LIMIT = "morning_limit";
+    private final String AFTERNOON_LIMIT = "afternoon_limit";
+    private void sendESM() {
+        SharedPreferences sp = getSharedPreferences(ESM_LIMITS, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sp.edit();
+        Calendar c = Calendar.getInstance();
+        // reset limits if required
+        if (c.get(Calendar.HOUR_OF_DAY) < 12) editor.putInt(AFTERNOON_LIMIT, 0);
+        else if (c.get(Calendar.HOUR_OF_DAY) >= 12) editor.putInt(MORNING_LIMIT, 0);
+        editor.commit();
+        // check current limits
+        if ((c.get(Calendar.HOUR_OF_DAY) < 12 && sp.getInt(MORNING_LIMIT, 0) < 2) ||
+                c.get(Calendar.HOUR_OF_DAY) >= 12 && sp.getInt(AFTERNOON_LIMIT, 0) < 2 ){
+
+            Intent resultIntent = new Intent(getApplicationContext(), InnoStaVaESM.class);
+            PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 0, resultIntent, 0);
+
+            NotificationCompat.Builder notification = new NotificationCompat.Builder(getApplicationContext())
+                    .setSmallIcon(R.drawable.ic_stat_communication_live_help)
+                    .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher))
+                    .setContentIntent(pendingIntent)
+                    .setAutoCancel(true)
+                    .setContentTitle("Questionnaire waiting")
+                    .setContentText("Open notification to answer questionnaire.");
+
+            NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+            // Will display the notification in the notification bar
+            notificationManager.notify(123, notification.build());
+            if (c.get(Calendar.HOUR_OF_DAY) < 12) {
+                editor.putInt(MORNING_LIMIT, sp.getInt(MORNING_LIMIT, 0) + 1);
+            }
+            else {
+                editor.putInt(AFTERNOON_LIMIT, sp.getInt(AFTERNOON_LIMIT, 0) + 1);
+            }
+            editor.apply();
+
+            ContentValues vals = new ContentValues();
+            vals.put(Provider.ESM_data.LOCATION, location);
+            vals.put(Provider.ESM_data.TIMESTAMP, System.currentTimeMillis());
+            vals.put(Provider.ESM_data.DEVICE_ID, Aware.getSetting(this, Aware_Preferences.DEVICE_ID));
+            getContentResolver().insert(Provider.ESM_data.CONTENT_URI, vals);
+        }
+
+
+    }
 
     @Override
     public void onCreate() {
@@ -55,12 +145,21 @@ public class Plugin extends Aware_Plugin {
         TABLES_FIELDS = Provider.TABLES_FIELDS;
         CONTEXT_URIS = new Uri[]{Provider.InnoStaVa_data.CONTENT_URI};
 
-        MyReceiver myReceiver = new MyReceiver();
+        myReceiver = new MyReceiver();
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction("ACTION_INNOSTAVA_ESM");
         registerReceiver(myReceiver, intentFilter);
 
+        esmContextReceiver = new EsmContextReceiver();
+        IntentFilter contextFilter = new IntentFilter();
+        contextFilter.addAction(com.aware.plugin.google.activity_recognition.Plugin.ACTION_AWARE_GOOGLE_ACTIVITY_RECOGNITION);
+        contextFilter.addAction(com.aware.plugin.bluetooth_beacon_detect.Plugin.ACTION_AWARE_PLUGIN_BT_BEACON_NEAREST);
+        registerReceiver(esmContextReceiver, contextFilter);
 
+        extendedbroadcaster eb = new extendedbroadcaster();
+        IntentFilter ef = new IntentFilter();
+        ef.addAction(Aware.ACTION_AWARE_SYNC_DATA);
+        registerReceiver(eb, ef);
 
         //TODO ; remove trigger from here and put in context
 
@@ -91,8 +190,17 @@ public class Plugin extends Aware_Plugin {
 
         //Activate plugin -- do this ALWAYS as the last thing (this will restart your own plugin and apply the settings)
         Aware.startPlugin(this, "com.aware.plugin.InnoStaVa");
+
     }
 
+    private class extendedbroadcaster extends ContextBroadcaster {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            for (int i = 0; i < CONTEXT_URIS.length; i++) {
+                Log.d(TAG, "i: " + CONTEXT_URIS[i]);
+            }
+        }
+    }
 
     //This function gets called every 5 minutes by AWARE to make sure this plugin is still running.
     @Override
@@ -168,6 +276,8 @@ public class Plugin extends Aware_Plugin {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        unregisterReceiver(esmContextReceiver);
+        unregisterReceiver(myReceiver);
         Aware.stopPlugin(this, "com.aware.plugin.google.activity_recognition");
         Aware.stopPlugin(this, "com.aware.plugin.bluetooth_beacon_detect");
         //Stop AWARE

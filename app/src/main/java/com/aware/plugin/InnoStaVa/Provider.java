@@ -22,20 +22,26 @@ import java.util.HashMap;
 public class Provider extends ContentProvider {
 
     public static String AUTHORITY = "com.aware.plugin.InnoStaVa.provider.InnoStaVa"; //change to package.provider.your_plugin_name
-    public static final int DATABASE_VERSION = 13; //increase this if you make changes to the database structure, i.e., rename columns, etc.
+    public static final int DATABASE_VERSION = 14; //increase this if you make changes to the database structure, i.e., rename columns, etc.
+
+    public static final Uri CONTENT_URI = Uri.parse("content://" + AUTHORITY);
 
     public static final String DATABASE_NAME = "questionnaire.db"; //the database filename, use plugin_xxx for plugins.
 
     //Add here your database table names, as many as you need
-    public static final String DB_TBL_INNOSTAVA = "questionnaire";
+    public static final String DB_TBL_INNOSTAVA_QUESTION = "questionnaire";
+    public static final String DB_TBL_INNOSTAVA_ESMS = "esms";
 
     //For each table, add two indexes: DIR and ITEM. The index needs to always increment. Next one is 3, and so on.
-    private static final int INNOSTAVA_DIR = 1;
-    private static final int INNOSTAVA_ITEM = 2;
+    private static final int QUESTION_DATA_DIR = 1;
+    private static final int QUESTION_DATA_ITEM = 2;
+    private static final int ESM_DATA_DIR = 3;
+    private static final int ESM_DATA_ITEM = 4;
 
     //Put tables names in this array so AWARE knows what you have on the database
     public static final String[] DATABASE_TABLES = {
-            DB_TBL_INNOSTAVA
+            DB_TBL_INNOSTAVA_QUESTION,
+            DB_TBL_INNOSTAVA_ESMS
     };
 
     //These are columns that we need to sync data, don't change this!
@@ -51,12 +57,20 @@ public class Provider extends ContentProvider {
      * In this example, we are adding example columns
      */
     public static final class InnoStaVa_data implements AWAREColumns {
-        public static final Uri CONTENT_URI = Uri.parse("content://" + AUTHORITY + "/" + DB_TBL_INNOSTAVA);
+        public static final Uri CONTENT_URI = Uri.withAppendedPath(Provider.CONTENT_URI, DB_TBL_INNOSTAVA_QUESTION);
         public static final String CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/vnd.com.aware.plugin.InnoStaVa.provider.questionnaire"; //modify me
         public static final String CONTENT_ITEM_TYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE + "/vnd.com.aware.plugin.InnoStaVa.provider.questionnaire"; //modify me
 
         public static final String QUESTION_ID = "question_id";
         public static final String ANSWER = "answer";
+    }
+
+    public static final class ESM_data implements AWAREColumns {
+        public static final Uri CONTENT_URI = Uri.withAppendedPath(Provider.CONTENT_URI, DB_TBL_INNOSTAVA_ESMS);
+        public static final String CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/vnd.com.aware.plugin.InnoStaVa.provider.esms"; //modify me
+        public static final String CONTENT_ITEM_TYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE + "/vnd.com.aware.plugin.InnoStaVa.provider.esms"; //modify me
+
+        public static final String LOCATION = "location_mac_key";
     }
 
     //Define each database table fields
@@ -67,11 +81,18 @@ public class Provider extends ContentProvider {
                     InnoStaVa_data.DEVICE_ID + " text default ''," +
                     InnoStaVa_data.QUESTION_ID + " text default ''," +
                     InnoStaVa_data.ANSWER + " text default ''";
+
+    private static final String DB_TBL_ESMS_FIELDS =
+            ESM_data._ID + " integer primary key autoincrement," +
+                    ESM_data.START_TIME + " real default 0," +
+                    ESM_data.TIMESTAMP + " real default 0," +
+                    ESM_data.LOCATION + " text default ''";
     /**
      * Share the fields with AWARE so we can replicate the table schema on the server
      */
     public static final String[] TABLES_FIELDS = {
-            DB_TBL_INNOSTAVA_FIELDS
+            DB_TBL_INNOSTAVA_FIELDS,
+            DB_TBL_ESMS_FIELDS
     };
 
     //Helper variables for ContentProvider - don't change me
@@ -80,7 +101,8 @@ public class Provider extends ContentProvider {
     private static SQLiteDatabase database;
 
     //For each table, create a hashmap needed for database queries
-    private static HashMap<String, String> tableOneHash;
+    private static HashMap<String, String> questionsHash;
+    private static HashMap<String, String> esmsHash;
 
     /**
      * Initialise database: create the database file, update if needed, etc. DO NOT CHANGE ME
@@ -105,17 +127,27 @@ public class Provider extends ContentProvider {
         sUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
 
         //For each table, add indexes DIR and ITEM
-        sUriMatcher.addURI(AUTHORITY, DATABASE_TABLES[0], INNOSTAVA_DIR);
-        sUriMatcher.addURI(AUTHORITY, DATABASE_TABLES[0] + "/#", INNOSTAVA_ITEM);
+        sUriMatcher.addURI(AUTHORITY, DATABASE_TABLES[0], QUESTION_DATA_DIR);
+        sUriMatcher.addURI(AUTHORITY, DATABASE_TABLES[0] + "/#", QUESTION_DATA_ITEM);
+
+        sUriMatcher.addURI(AUTHORITY, DATABASE_TABLES[1], ESM_DATA_DIR);
+        sUriMatcher.addURI(AUTHORITY, DATABASE_TABLES[1] + "/#", ESM_DATA_ITEM);
 
         //Create each table hashmap so Android knows how to insert data to the database. Put ALL table fields.
-        tableOneHash = new HashMap<>();
-        tableOneHash.put(InnoStaVa_data._ID, InnoStaVa_data._ID);
-        tableOneHash.put(InnoStaVa_data.START_TIME, InnoStaVa_data.START_TIME);
-        tableOneHash.put(InnoStaVa_data.TIMESTAMP, InnoStaVa_data.TIMESTAMP);
-        tableOneHash.put(InnoStaVa_data.DEVICE_ID, InnoStaVa_data.DEVICE_ID);
-        tableOneHash.put(InnoStaVa_data.QUESTION_ID, InnoStaVa_data.QUESTION_ID);
-        tableOneHash.put(InnoStaVa_data.ANSWER, InnoStaVa_data.ANSWER);
+        questionsHash = new HashMap<>();
+        questionsHash.put(InnoStaVa_data._ID, InnoStaVa_data._ID);
+        questionsHash.put(InnoStaVa_data.START_TIME, InnoStaVa_data.START_TIME);
+        questionsHash.put(InnoStaVa_data.TIMESTAMP, InnoStaVa_data.TIMESTAMP);
+        questionsHash.put(InnoStaVa_data.DEVICE_ID, InnoStaVa_data.DEVICE_ID);
+        questionsHash.put(InnoStaVa_data.QUESTION_ID, InnoStaVa_data.QUESTION_ID);
+        questionsHash.put(InnoStaVa_data.ANSWER, InnoStaVa_data.ANSWER);
+
+        esmsHash = new HashMap<>();
+        esmsHash.put(ESM_data._ID, ESM_data._ID);
+        esmsHash.put(ESM_data.START_TIME, ESM_data.START_TIME);
+        esmsHash.put(ESM_data.TIMESTAMP, ESM_data.TIMESTAMP);
+        esmsHash.put(ESM_data.DEVICE_ID, ESM_data.DEVICE_ID);
+        esmsHash.put(ESM_data.LOCATION, ESM_data.LOCATION);
 
         return true;
     }
@@ -132,11 +164,14 @@ public class Provider extends ContentProvider {
         switch (sUriMatcher.match(uri)) {
 
             //Add all tables' DIR entries, with the right table index
-            case INNOSTAVA_DIR:
+            case QUESTION_DATA_DIR:
                 qb.setTables(DATABASE_TABLES[0]);
-                qb.setProjectionMap(tableOneHash); //the hashmap of the table
+                qb.setProjectionMap(questionsHash); //the hashmap of the table
                 break;
-
+            case ESM_DATA_DIR:
+                qb.setTables(DATABASE_TABLES[1]);
+                qb.setProjectionMap(esmsHash);
+                break;
             default:
                 throw new IllegalArgumentException("Unknown URI " + uri);
         }
@@ -160,11 +195,14 @@ public class Provider extends ContentProvider {
         switch (sUriMatcher.match(uri)) {
 
             //Add each table indexes DIR and ITEM
-            case INNOSTAVA_DIR:
+            case QUESTION_DATA_DIR:
                 return InnoStaVa_data.CONTENT_TYPE;
-            case INNOSTAVA_ITEM:
+            case QUESTION_DATA_ITEM:
                 return InnoStaVa_data.CONTENT_ITEM_TYPE;
-
+            case ESM_DATA_DIR:
+                return ESM_data.CONTENT_TYPE;
+            case ESM_DATA_ITEM:
+                return ESM_data.CONTENT_ITEM_TYPE;
             default:
                 throw new IllegalArgumentException("Unknown URI " + uri);
         }
@@ -184,10 +222,18 @@ public class Provider extends ContentProvider {
         switch (sUriMatcher.match(uri)) {
 
             //Add each table DIR case
-            case INNOSTAVA_DIR:
+            case QUESTION_DATA_DIR:
                 _id = database.insert(DATABASE_TABLES[0], InnoStaVa_data.DEVICE_ID, values);
                 if (_id > 0) {
                     Uri dataUri = ContentUris.withAppendedId(InnoStaVa_data.CONTENT_URI, _id);
+                    getContext().getContentResolver().notifyChange(dataUri, null);
+                    return dataUri;
+                }
+                throw new SQLException("Failed to insert row into " + uri);
+            case ESM_DATA_DIR:
+                _id = database.insert(DATABASE_TABLES[1], ESM_data.DEVICE_ID, values);
+                if (_id > 0) {
+                    Uri dataUri = ContentUris.withAppendedId(ESM_data.CONTENT_URI, _id);
                     getContext().getContentResolver().notifyChange(dataUri, null);
                     return dataUri;
                 }
@@ -209,10 +255,12 @@ public class Provider extends ContentProvider {
         switch (sUriMatcher.match(uri)) {
 
             //Add each table DIR case
-            case INNOSTAVA_DIR:
+            case QUESTION_DATA_DIR:
                 count = database.delete(DATABASE_TABLES[0], selection, selectionArgs);
                 break;
-
+            case ESM_DATA_DIR:
+                count = database.delete(DATABASE_TABLES[1], selection, selectionArgs);
+                break;
             default:
                 throw new IllegalArgumentException("Unknown URI " + uri);
         }
@@ -231,8 +279,11 @@ public class Provider extends ContentProvider {
         switch (sUriMatcher.match(uri)) {
 
             //Add each table DIR case
-            case INNOSTAVA_DIR:
+            case QUESTION_DATA_DIR:
                 count = database.update(DATABASE_TABLES[0], values, selection, selectionArgs);
+                break;
+            case ESM_DATA_DIR:
+                count = database.update(DATABASE_TABLES[1], values, selection, selectionArgs);
                 break;
 
             default:
