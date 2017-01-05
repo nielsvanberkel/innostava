@@ -22,7 +22,7 @@ import java.util.HashMap;
 public class Provider extends ContentProvider {
 
     public static String AUTHORITY = "com.aware.plugin.InnoStaVa.provider.InnoStaVa"; //change to package.provider.your_plugin_name
-    public static final int DATABASE_VERSION = 14; //increase this if you make changes to the database structure, i.e., rename columns, etc.
+    public static final int DATABASE_VERSION = 15; //increase this if you make changes to the database structure, i.e., rename columns, etc.
 
     public static final Uri CONTENT_URI = Uri.parse("content://" + AUTHORITY);
 
@@ -86,6 +86,7 @@ public class Provider extends ContentProvider {
             ESM_data._ID + " integer primary key autoincrement," +
                     ESM_data.START_TIME + " real default 0," +
                     ESM_data.TIMESTAMP + " real default 0," +
+                    ESM_data.DEVICE_ID + " text default ''," +
                     ESM_data.LOCATION + " text default ''";
     /**
      * Share the fields with AWARE so we can replicate the table schema on the server

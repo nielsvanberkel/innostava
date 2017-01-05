@@ -39,6 +39,8 @@ public class Plugin extends Aware_Plugin {
     private int activity = -1;
     private long activity_changed = System.currentTimeMillis();
 
+    private static boolean checkOngoing = false;
+
     private EsmContextReceiver esmContextReceiver;
     private class EsmContextReceiver extends BroadcastReceiver {
         @Override
@@ -54,9 +56,13 @@ public class Plugin extends Aware_Plugin {
                         System.currentTimeMillis() - ESM_TRIGGER_THRESHOLD_MILLIS > activity_changed) {
                     sendESM();
                 }
+                if (!checkOngoing) {
+                    Log.d(TAG, "sending delayed check");
+                    new Thread(new ESMCheckRunnable(activity, location)).run();
+                }
             }
             else if (intent.getAction().equals(com.aware.plugin.google.activity_recognition.Plugin.ACTION_AWARE_GOOGLE_ACTIVITY_RECOGNITION)) {
-                Log.d(TAG, "activity: " + intent.getIntExtra(com.aware.plugin.google.activity_recognition.Plugin.EXTRA_ACTIVITY, -1));
+                Log.d(TAG, "checked_activity: " + intent.getIntExtra(com.aware.plugin.google.activity_recognition.Plugin.EXTRA_ACTIVITY, -1));
                 if (intent.getIntExtra(com.aware.plugin.google.activity_recognition.Plugin.EXTRA_CONFIDENCE, 100) > 75
                         && !(intent.getIntExtra(com.aware.plugin.google.activity_recognition.Plugin.EXTRA_ACTIVITY, -1) == activity)) {
                     activity = intent.getIntExtra(com.aware.plugin.google.activity_recognition.Plugin.EXTRA_ACTIVITY, -1);
@@ -67,6 +73,28 @@ public class Plugin extends Aware_Plugin {
                         && activity == ACTIVITY_STILL) {
                     sendESM();
                 }
+            }
+        }
+    }
+
+    private class ESMCheckRunnable implements Runnable {
+        public ESMCheckRunnable(int activity, String location) {
+            this.checked_activity = activity;
+            this.checked_location = location;
+        }
+        private int checked_activity;
+        private String checked_location;
+
+        @Override
+        public void run() {
+            Log.d(TAG, "delayed checking if a notification should be sent");
+            checkOngoing = false;
+            if (this.checked_activity == activity &&
+                this.checked_location.equals(location) &&
+                System.currentTimeMillis() - ESM_TRIGGER_THRESHOLD_MILLIS > location_changed &&
+                System.currentTimeMillis() - ESM_TRIGGER_THRESHOLD_MILLIS > activity_changed) {
+                // if all conditions match, send esm
+                sendESM();
             }
         }
     }
@@ -143,7 +171,10 @@ public class Plugin extends Aware_Plugin {
 
         DATABASE_TABLES = Provider.DATABASE_TABLES;
         TABLES_FIELDS = Provider.TABLES_FIELDS;
-        CONTEXT_URIS = new Uri[]{Provider.InnoStaVa_data.CONTENT_URI};
+        CONTEXT_URIS = new Uri[]{
+                Provider.InnoStaVa_data.CONTENT_URI,
+                Provider.ESM_data.CONTENT_URI
+        };
 
         myReceiver = new MyReceiver();
         IntentFilter intentFilter = new IntentFilter();
@@ -155,11 +186,6 @@ public class Plugin extends Aware_Plugin {
         contextFilter.addAction(com.aware.plugin.google.activity_recognition.Plugin.ACTION_AWARE_GOOGLE_ACTIVITY_RECOGNITION);
         contextFilter.addAction(com.aware.plugin.bluetooth_beacon_detect.Plugin.ACTION_AWARE_PLUGIN_BT_BEACON_NEAREST);
         registerReceiver(esmContextReceiver, contextFilter);
-
-        extendedbroadcaster eb = new extendedbroadcaster();
-        IntentFilter ef = new IntentFilter();
-        ef.addAction(Aware.ACTION_AWARE_SYNC_DATA);
-        registerReceiver(eb, ef);
 
         //TODO ; remove trigger from here and put in context
 
@@ -191,15 +217,6 @@ public class Plugin extends Aware_Plugin {
         //Activate plugin -- do this ALWAYS as the last thing (this will restart your own plugin and apply the settings)
         Aware.startPlugin(this, "com.aware.plugin.InnoStaVa");
 
-    }
-
-    private class extendedbroadcaster extends ContextBroadcaster {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            for (int i = 0; i < CONTEXT_URIS.length; i++) {
-                Log.d(TAG, "i: " + CONTEXT_URIS[i]);
-            }
-        }
     }
 
     //This function gets called every 5 minutes by AWARE to make sure this plugin is still running.
