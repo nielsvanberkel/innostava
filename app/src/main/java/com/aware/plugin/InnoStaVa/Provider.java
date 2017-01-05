@@ -24,8 +24,6 @@ public class Provider extends ContentProvider {
     public static String AUTHORITY = "com.aware.plugin.InnoStaVa.provider.InnoStaVa"; //change to package.provider.your_plugin_name
     public static final int DATABASE_VERSION = 15; //increase this if you make changes to the database structure, i.e., rename columns, etc.
 
-    public static final Uri CONTENT_URI = Uri.parse("content://" + AUTHORITY);
-
     public static final String DATABASE_NAME = "questionnaire.db"; //the database filename, use plugin_xxx for plugins.
 
     //Add here your database table names, as many as you need
@@ -57,7 +55,7 @@ public class Provider extends ContentProvider {
      * In this example, we are adding example columns
      */
     public static final class InnoStaVa_data implements AWAREColumns {
-        public static final Uri CONTENT_URI = Uri.withAppendedPath(Provider.CONTENT_URI, DB_TBL_INNOSTAVA_QUESTION);
+        public static final Uri CONTENT_URI = Uri.parse("content://" + AUTHORITY + "/" + DB_TBL_INNOSTAVA_QUESTION);
         public static final String CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/vnd.com.aware.plugin.InnoStaVa.provider.questionnaire"; //modify me
         public static final String CONTENT_ITEM_TYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE + "/vnd.com.aware.plugin.InnoStaVa.provider.questionnaire"; //modify me
 
@@ -66,7 +64,7 @@ public class Provider extends ContentProvider {
     }
 
     public static final class ESM_data implements AWAREColumns {
-        public static final Uri CONTENT_URI = Uri.withAppendedPath(Provider.CONTENT_URI, DB_TBL_INNOSTAVA_ESMS);
+        public static final Uri CONTENT_URI = Uri.parse("content://" + AUTHORITY + "/" + DB_TBL_INNOSTAVA_ESMS);
         public static final String CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/vnd.com.aware.plugin.InnoStaVa.provider.esms"; //modify me
         public static final String CONTENT_ITEM_TYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE + "/vnd.com.aware.plugin.InnoStaVa.provider.esms"; //modify me
 
