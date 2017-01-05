@@ -2,16 +2,19 @@ package com.aware.plugin.InnoStaVa;
 
 import android.app.Activity;
 import android.content.ContentValues;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.RatingBar;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import com.aware.Aware;
 import com.aware.Aware_Preferences;
@@ -156,6 +159,7 @@ public class InnoStaVaESM extends Activity {
     private void prepare_v4() {
         setContentView(R.layout.v_4);
         insert_db();
+
         final Button v4_next = (Button) findViewById(R.id.v4_next);
         v4_next.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -170,11 +174,147 @@ public class InnoStaVaESM extends Activity {
     private void prepare_v5() {
         setContentView(R.layout.v_5);
         insert_db();
+        final RatingBar v5_rb1 = (RatingBar) findViewById(R.id.v5_rb1);
+        final ToggleButton v5_tb1 = (ToggleButton) findViewById(R.id.v5_tb1);
+        final RatingBar v5_rb2 = (RatingBar) findViewById(R.id.v5_rb2);
+        final ToggleButton v5_tb2 = (ToggleButton) findViewById(R.id.v5_tb2);
+        final RatingBar v5_rb3 = (RatingBar) findViewById(R.id.v5_rb3);
+        final ToggleButton v5_tb3 = (ToggleButton) findViewById(R.id.v5_tb3);
+        final RatingBar v5_rb4 = (RatingBar) findViewById(R.id.v5_rb4);
+        final ToggleButton v5_tb4 = (ToggleButton) findViewById(R.id.v5_tb4);
+        final RatingBar v5_rb5 = (RatingBar) findViewById(R.id.v5_rb5);
+        final ToggleButton v5_tb5 = (ToggleButton) findViewById(R.id.v5_tb5);
+        final RatingBar v5_rb6 = (RatingBar) findViewById(R.id.v5_rb6);
+        final ToggleButton v5_tb6 = (ToggleButton) findViewById(R.id.v5_tb6);
+        final RatingBar v5_rb7 = (RatingBar) findViewById(R.id.v5_rb7);
+        final ToggleButton v5_tb7 = (ToggleButton) findViewById(R.id.v5_tb7);
+        final RatingBar v5_rb8 = (RatingBar) findViewById(R.id.v5_rb8);
+        final ToggleButton v5_tb8 = (ToggleButton) findViewById(R.id.v5_tb8);
+        final RatingBar v5_rb9 = (RatingBar) findViewById(R.id.v5_rb9);
+        final ToggleButton v5_tb9 = (ToggleButton) findViewById(R.id.v5_tb9);
+
+
+
+        v5_tb1.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    v5_rb1.setRating(0);
+                    v5_rb1.setIsIndicator(true);
+                    buttonView.setBackgroundColor(Color.DKGRAY);
+                } else {
+                    v5_rb1.setIsIndicator(false);
+                }
+            }
+        });
+
+        v5_tb2.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    v5_rb2.setRating(0);
+                    v5_rb2.setIsIndicator(true);
+                } else {
+                    v5_rb2.setIsIndicator(false);
+                }
+            }
+        });
+
+        v5_tb3.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    v5_rb3.setRating(0);
+                    v5_rb3.setIsIndicator(true);
+                } else {
+                    v5_rb3.setIsIndicator(false);
+                }
+            }
+        });
+
+        v5_tb4.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    v5_rb4.setRating(0);
+                    v5_rb4.setIsIndicator(true);
+                } else {
+                    v5_rb4.setIsIndicator(false);
+                }
+            }
+        });
+
+        v5_tb5.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    v5_rb5.setRating(0);
+                    v5_rb5.setIsIndicator(true);
+                } else {
+                    v5_rb5.setIsIndicator(false);
+                }
+            }
+        });
+
+        v5_tb6.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    v5_rb6.setRating(0);
+                    v5_rb6.setIsIndicator(true);
+                } else {
+                    v5_rb6.setIsIndicator(false);
+                }
+            }
+        });
+
+        v5_tb7.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    v5_rb7.setRating(0);
+                    v5_rb7.setIsIndicator(true);
+                } else {
+                    v5_rb7.setIsIndicator(false);
+                }
+            }
+        });
+
+        v5_tb8.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    v5_rb8.setRating(0);
+                    v5_rb8.setIsIndicator(true);
+                } else {
+                    v5_rb8.setIsIndicator(false);
+                }
+            }
+        });
+
+        v5_tb9.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    v5_rb9.setRating(0);
+                    v5_rb9.setIsIndicator(true);
+                } else {
+                    v5_rb9.setIsIndicator(false);
+                }
+            }
+        });
+
         final Button v5_next = (Button) findViewById(R.id.v5_next);
         v5_next.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
+                ArrayList<String> v5_answer = new ArrayList<>();
+                v5_answer.clear();
 
-                // TODO
+                float v5_1_answer = v5_rb1.getRating();
+                float v5_2_answer = v5_rb2.getRating();
+                float v5_3_answer = v5_rb3.getRating();
+                float v5_4_answer = v5_rb4.getRating();
+                float v5_5_answer = v5_rb5.getRating();
+                float v5_6_answer = v5_rb6.getRating();
+                float v5_7_answer = v5_rb7.getRating();
+                float v5_8_answer = v5_rb8.getRating();
+                float v5_9_answer = v5_rb9.getRating();
+
+                v5_answer.add(v5_1_answer + ";" + v5_2_answer + ";" + v5_3_answer + ";" + v5_4_answer + ";" + v5_5_answer + ";" +
+                        v5_6_answer + ";" + v5_7_answer + ";" + v5_8_answer + ";" + v5_9_answer);
+
+                answers.put("V5", String.valueOf(v5_answer));
 
                 prepare_v6();
             }

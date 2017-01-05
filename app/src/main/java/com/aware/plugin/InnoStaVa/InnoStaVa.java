@@ -70,7 +70,7 @@ public class InnoStaVa extends AppCompatActivity {
             finish();
         } else {
             Applications.isAccessibilityServiceActive(getApplicationContext());
-            Aware.joinStudy(getApplicationContext(), "https://api.awareframework.com/index.php/webservice/index/989/73JTLkqEcwWZ");
+//            Aware.joinStudy(getApplicationContext(), "https://api.awareframework.com/index.php/webservice/index/989/73JTLkqEcwWZ");
 
             Toast.makeText(getApplicationContext(), "Thanks for joining!", Toast.LENGTH_SHORT).show();
         }

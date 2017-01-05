@@ -75,7 +75,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="2"
                 android:gravity="center_vertical|center_horizontal"
-                android:text="Next" />
+                android:text="@string/next" />
         </LinearLayout>
 
     </LinearLayout>
