@@ -1,5 +1,6 @@
 package com.aware.plugin.InnoStaVa;
 
+import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -42,8 +43,13 @@ public class InnoStaVa extends AppCompatActivity {
         join_study = (Button) findViewById(R.id.join_study);
         set_settings = (Button) findViewById(R.id.set_settings);
         sync_data = (Button) findViewById(R.id.sync_data);
-
-        REQUIRED_PERMISSIONS.add(android.Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        
+        REQUIRED_PERMISSIONS.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        REQUIRED_PERMISSIONS.add(Manifest.permission.ACCESS_WIFI_STATE);
+        REQUIRED_PERMISSIONS.add(Manifest.permission.BLUETOOTH);
+        REQUIRED_PERMISSIONS.add(Manifest.permission.BLUETOOTH_ADMIN);
+        REQUIRED_PERMISSIONS.add(Manifest.permission.ACCESS_COARSE_LOCATION);
+        REQUIRED_PERMISSIONS.add(Manifest.permission.ACCESS_FINE_LOCATION);
 
         boolean permissions_ok = true;
         for (String p : REQUIRED_PERMISSIONS) {

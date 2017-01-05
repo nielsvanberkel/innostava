@@ -15,7 +15,9 @@ import android.net.Uri;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
+import android.widget.Toast;
 
+import com.aware.Applications;
 import com.aware.Aware;
 import com.aware.Aware_Preferences;
 import com.aware.ui.PermissionsHandler;
@@ -106,6 +108,8 @@ public class Plugin extends Aware_Plugin {
         SharedPreferences sp = getSharedPreferences(ESM_LIMITS, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sp.edit();
         Calendar c = Calendar.getInstance();
+        // no ESMS outside 8-16
+        if (c.get(Calendar.HOUR_OF_DAY) < 8 || c.get(Calendar.HOUR_OF_DAY) > 16) return;
         // reset limits if required
         if (c.get(Calendar.HOUR_OF_DAY) < 12) editor.putInt(AFTERNOON_LIMIT, 0);
         else if (c.get(Calendar.HOUR_OF_DAY) >= 12) editor.putInt(MORNING_LIMIT, 0);
@@ -169,54 +173,77 @@ public class Plugin extends Aware_Plugin {
         REQUIRED_PERMISSIONS.add(Manifest.permission.ACCESS_COARSE_LOCATION);
         REQUIRED_PERMISSIONS.add(Manifest.permission.ACCESS_FINE_LOCATION);
 
-        DATABASE_TABLES = Provider.DATABASE_TABLES;
-        TABLES_FIELDS = Provider.TABLES_FIELDS;
-        CONTEXT_URIS = new Uri[]{
-                Provider.InnoStaVa_data.CONTENT_URI,
-                Provider.ESM_data.CONTENT_URI
-        };
-
-        myReceiver = new MyReceiver();
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction("ACTION_INNOSTAVA_ESM");
-        registerReceiver(myReceiver, intentFilter);
-
-        esmContextReceiver = new EsmContextReceiver();
-        IntentFilter contextFilter = new IntentFilter();
-        contextFilter.addAction(com.aware.plugin.google.activity_recognition.Plugin.ACTION_AWARE_GOOGLE_ACTIVITY_RECOGNITION);
-        contextFilter.addAction(com.aware.plugin.bluetooth_beacon_detect.Plugin.ACTION_AWARE_PLUGIN_BT_BEACON_NEAREST);
-        registerReceiver(esmContextReceiver, contextFilter);
-
-        //TODO ; remove trigger from here and put in context
-
-
-        Log.d("Niels", "Plugin oncreate called");
-
-
-        Calendar c = Calendar.getInstance();
-
-        Scheduler.Schedule schedule = new Scheduler.Schedule("schedule_" + c.toString());
-        try {
-            schedule.setTimer(c)
-                    .setActionType(Scheduler.ACTION_TYPE_BROADCAST)
-                    .setActionIntentAction(broadcast_receiver); //with this action
-
-            Scheduler.saveSchedule(getApplicationContext(), schedule);
-        } catch (JSONException e) {
-            e.printStackTrace();
+        boolean permissions_ok = true;
+        for (String p : REQUIRED_PERMISSIONS) {
+            if (ContextCompat.checkSelfPermission(this, p) != PackageManager.PERMISSION_GRANTED) {
+                permissions_ok = false;
+                break;
+            }
         }
 
+        if (!permissions_ok) {
+            Intent permissions = new Intent(this, PermissionsHandler.class);
+            permissions.putExtra(PermissionsHandler.EXTRA_REQUIRED_PERMISSIONS, REQUIRED_PERMISSIONS);
+            permissions.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            permissions.putExtra(PermissionsHandler.EXTRA_REDIRECT_ACTIVITY,
+                    getPackageName() + "/" + InnoStaVa.class.getName());
 
-        // start aware and plugins
-        Aware.startAWARE();
+            startActivity(permissions);
+        } else {
+            Applications.isAccessibilityServiceActive(getApplicationContext());
+            Aware.joinStudy(getApplicationContext(), "https://api.awareframework.com/index.php/webservice/index/989/73JTLkqEcwWZ");
 
-        Aware.startPlugin(this, "com.aware.plugin.google.activity_recognition");
-        Aware.setSetting(this,  "frequency_plugin_bluetooth_beacon_detect", 30000);
-        Aware.startPlugin(this, "com.aware.plugin.bluetooth_beacon_detect");
+            Toast.makeText(getApplicationContext(), "Thanks for joining!", Toast.LENGTH_SHORT).show();
 
-        //Activate plugin -- do this ALWAYS as the last thing (this will restart your own plugin and apply the settings)
-        Aware.startPlugin(this, "com.aware.plugin.InnoStaVa");
 
+            DATABASE_TABLES = Provider.DATABASE_TABLES;
+            TABLES_FIELDS = Provider.TABLES_FIELDS;
+            CONTEXT_URIS = new Uri[]{
+                    Provider.InnoStaVa_data.CONTENT_URI,
+                    Provider.ESM_data.CONTENT_URI
+            };
+
+            myReceiver = new MyReceiver();
+            IntentFilter intentFilter = new IntentFilter();
+            intentFilter.addAction("ACTION_INNOSTAVA_ESM");
+            registerReceiver(myReceiver, intentFilter);
+
+            esmContextReceiver = new EsmContextReceiver();
+            IntentFilter contextFilter = new IntentFilter();
+            contextFilter.addAction(com.aware.plugin.google.activity_recognition.Plugin.ACTION_AWARE_GOOGLE_ACTIVITY_RECOGNITION);
+            contextFilter.addAction(com.aware.plugin.bluetooth_beacon_detect.Plugin.ACTION_AWARE_PLUGIN_BT_BEACON_NEAREST);
+            registerReceiver(esmContextReceiver, contextFilter);
+
+            //TODO ; remove trigger from here and put in context
+
+
+            Log.d("Niels", "Plugin oncreate called");
+
+
+            Calendar c = Calendar.getInstance();
+
+            Scheduler.Schedule schedule = new Scheduler.Schedule("schedule_" + c.toString());
+            try {
+                schedule.setTimer(c)
+                        .setActionType(Scheduler.ACTION_TYPE_BROADCAST)
+                        .setActionIntentAction(broadcast_receiver); //with this action
+
+                Scheduler.saveSchedule(getApplicationContext(), schedule);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+
+            // start aware and plugins
+            Aware.startAWARE();
+
+            Aware.startPlugin(this, "com.aware.plugin.google.activity_recognition");
+            Aware.setSetting(this, "frequency_plugin_bluetooth_beacon_detect", 60000);
+            Aware.startPlugin(this, "com.aware.plugin.bluetooth_beacon_detect");
+
+            //Activate plugin -- do this ALWAYS as the last thing (this will restart your own plugin and apply the settings)
+            Aware.startPlugin(this, "com.aware.plugin.InnoStaVa");
+        }
     }
 
     //This function gets called every 5 minutes by AWARE to make sure this plugin is still running.
