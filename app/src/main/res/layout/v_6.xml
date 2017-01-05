@@ -23,6 +23,14 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
+            <TimePicker
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/v6_time"
+                android:layout_weight="2"
+                android:paddingBottom="24dp" />
+
+
 
         </LinearLayout>
 
@@ -40,7 +48,8 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="2"
                 android:gravity="center_vertical|center_horizontal"
-                android:text="Next" />
+                android:text="@string/next" />
+
         </LinearLayout>
 
     </LinearLayout>
