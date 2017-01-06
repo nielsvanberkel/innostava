@@ -130,7 +130,7 @@ public class InnoStaVa extends AppCompatActivity {
             }
         });
 
-        current_activity.setText("Current activity: " + activity);
+        current_activity.setText("Current activity: " + Utils.getActivityName(activity));
         current_location.setText("Current location: " + location);
 
         if (Aware.isStudy(getApplicationContext())) {
