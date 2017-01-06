@@ -61,37 +61,35 @@ public class Plugin extends Aware_Plugin {
                     location = intent.getStringExtra(com.aware.plugin.bluetooth_beacon_detect.Provider.BluetoothBeacon_Data.MAC_ADDRESS);
                     location_changed = System.currentTimeMillis();
                     // if user also currently still, check again in ESM_TRIGGER_THRESHOLD_MILLIS
-                    if (stillActivities.contains(activity)) new Handler().postDelayed(new ESMCheckRunnable(activity, location), ESM_TRIGGER_THRESHOLD_MILLIS);
+                    //if (stillActivities.contains(activity)) new Handler().postDelayed(new ESMCheckRunnable(activity, location), ESM_TRIGGER_THRESHOLD_MILLIS);
                 }
-                else if (System.currentTimeMillis() - ESM_TRIGGER_THRESHOLD_MILLIS > location_changed &&
-                        System.currentTimeMillis() - ESM_TRIGGER_THRESHOLD_MILLIS > activity_changed
-                        && stillActivities.contains(activity)) {
+                else if (System.currentTimeMillis() - ESM_TRIGGER_THRESHOLD_MILLIS > location_changed) {
                     sendESM();
                 }
             }
-            else if (intent.getAction().equals(com.aware.plugin.google.activity_recognition.Plugin.ACTION_AWARE_GOOGLE_ACTIVITY_RECOGNITION)) {
-                Log.d(TAG, "checked_activity: " + intent.getIntExtra(com.aware.plugin.google.activity_recognition.Plugin.EXTRA_ACTIVITY, -1));
-                if (activity < 0) {
-                    activity = intent.getIntExtra(com.aware.plugin.google.activity_recognition.Plugin.EXTRA_ACTIVITY, -1);
-                    activity_changed = System.currentTimeMillis();
-                    return;
-                }
-                if (intent.getIntExtra(com.aware.plugin.google.activity_recognition.Plugin.EXTRA_CONFIDENCE, 100) > 50
-                        && !(intent.getIntExtra(com.aware.plugin.google.activity_recognition.Plugin.EXTRA_ACTIVITY, -1) == activity)) {
-                    // if both activities are considered "still", dont log activity changing
-                    if (stillActivities.contains(activity) && stillActivities.contains(intent.getIntExtra(com.aware.plugin.google.activity_recognition.Plugin.EXTRA_ACTIVITY, -1))) {
-                        return;
-                    }
-                    activity = intent.getIntExtra(com.aware.plugin.google.activity_recognition.Plugin.EXTRA_ACTIVITY, -1);
-                    activity_changed = System.currentTimeMillis();
-                }
-                // else if user is still and location unchanged for ESM_TRIGGER_THRESHOLD_MILLIS, send esm
-                else if (System.currentTimeMillis() - ESM_TRIGGER_THRESHOLD_MILLIS > location_changed &&
-                        System.currentTimeMillis() - ESM_TRIGGER_THRESHOLD_MILLIS > activity_changed
-                        && stillActivities.contains(activity)) {
-                    sendESM();
-                }
-            }
+//            else if (intent.getAction().equals(com.aware.plugin.google.activity_recognition.Plugin.ACTION_AWARE_GOOGLE_ACTIVITY_RECOGNITION)) {
+//                Log.d(TAG, "checked_activity: " + intent.getIntExtra(com.aware.plugin.google.activity_recognition.Plugin.EXTRA_ACTIVITY, -1));
+//                if (activity < 0) {
+//                    activity = intent.getIntExtra(com.aware.plugin.google.activity_recognition.Plugin.EXTRA_ACTIVITY, -1);
+//                    activity_changed = System.currentTimeMillis();
+//                    return;
+//                }
+//                if (intent.getIntExtra(com.aware.plugin.google.activity_recognition.Plugin.EXTRA_CONFIDENCE, 100) > 50
+//                        && !(intent.getIntExtra(com.aware.plugin.google.activity_recognition.Plugin.EXTRA_ACTIVITY, -1) == activity)) {
+//                    // if both activities are considered "still", dont log activity changing
+//                    if (stillActivities.contains(activity) && stillActivities.contains(intent.getIntExtra(com.aware.plugin.google.activity_recognition.Plugin.EXTRA_ACTIVITY, -1))) {
+//                        return;
+//                    }
+//                    activity = intent.getIntExtra(com.aware.plugin.google.activity_recognition.Plugin.EXTRA_ACTIVITY, -1);
+//                    activity_changed = System.currentTimeMillis();
+//                }
+//                // else if user is still and location unchanged for ESM_TRIGGER_THRESHOLD_MILLIS, send esm
+//                else if (System.currentTimeMillis() - ESM_TRIGGER_THRESHOLD_MILLIS > location_changed &&
+//                        System.currentTimeMillis() - ESM_TRIGGER_THRESHOLD_MILLIS > activity_changed
+//                        && stillActivities.contains(activity)) {
+//                    sendESM();
+//                }
+//            }
         }
     }
 
@@ -252,7 +250,7 @@ public class Plugin extends Aware_Plugin {
 
             Aware.setSetting(this, "frequency_plugin_google_activity_recognition", 60);
             Aware.startPlugin(this, "com.aware.plugin.google.activity_recognition");
-            Aware.setSetting(this, "frequency_plugin_bluetooth_beacon_detect", 300000);
+            Aware.setSetting(this, "frequency_plugin_bluetooth_beacon_detect", 30000);
             Aware.startPlugin(this, "com.aware.plugin.bluetooth_beacon_detect");
 
             //Activate plugin -- do this ALWAYS as the last thing (this will restart your own plugin and apply the settings)
