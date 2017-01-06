@@ -12,6 +12,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Handler;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
@@ -32,7 +33,7 @@ public class Plugin extends Aware_Plugin {
     public static String broadcast_receiver = "ACTION_INNOSTAVA_ESM";
     MyReceiver myReceiver;
 
-    private static final int ESM_TRIGGER_THRESHOLD_MILLIS = 60000;
+    private static final int ESM_TRIGGER_THRESHOLD_MILLIS = 180000;
 
     private final int ACTIVITY_STILL = 3;
 
@@ -78,9 +79,11 @@ public class Plugin extends Aware_Plugin {
             }
         }
     }
+    private static boolean checkPending = false;
 
     private class ESMCheckRunnable implements Runnable {
-        public ESMCheckRunnable(int activity, String location) {
+        public ESMCheckRunnable(final int activity, final String location) {
+            checkPending = true;
             this.checked_activity = activity;
             this.checked_location = location;
         }
@@ -91,13 +94,18 @@ public class Plugin extends Aware_Plugin {
         public void run() {
             Log.d(TAG, "delayed checking if a notification should be sent");
             checkOngoing = false;
-            if (this.checked_activity == activity &&
+            if (checked_activity > -1 && !checked_location.equals("unknown") &&
+                this.checked_activity == activity &&
                 this.checked_location.equals(location) &&
                 System.currentTimeMillis() - ESM_TRIGGER_THRESHOLD_MILLIS > location_changed &&
                 System.currentTimeMillis() - ESM_TRIGGER_THRESHOLD_MILLIS > activity_changed) {
                 // if all conditions match, send esm
                 sendESM();
             }
+            // start new
+            Log.d(TAG, "starting new check cycle with " + activity + " at " + location);
+            if (!checkPending) handler.postDelayed(new ESMCheckRunnable(activity, location), 60000);
+            checkPending = false;
         }
     }
 
@@ -150,10 +158,13 @@ public class Plugin extends Aware_Plugin {
 
     }
 
+    Handler handler;
+
     @Override
     public void onCreate() {
         super.onCreate();
 
+        handler = new Handler();
         TAG = "AWARE::" + getResources().getString(R.string.app_name);
 
 //        Aware.setSetting(this, Aware_Preferences.DEBUG_FLAG, false);
@@ -214,26 +225,6 @@ public class Plugin extends Aware_Plugin {
             contextFilter.addAction(com.aware.plugin.bluetooth_beacon_detect.Plugin.ACTION_AWARE_PLUGIN_BT_BEACON_NEAREST);
             registerReceiver(esmContextReceiver, contextFilter);
 
-            //TODO ; remove trigger from here and put in context
-
-
-            Log.d("Niels", "Plugin oncreate called");
-
-
-            Calendar c = Calendar.getInstance();
-
-            Scheduler.Schedule schedule = new Scheduler.Schedule("schedule_" + c.toString());
-            try {
-                schedule.setTimer(c)
-                        .setActionType(Scheduler.ACTION_TYPE_BROADCAST)
-                        .setActionIntentAction(broadcast_receiver); //with this action
-
-                Scheduler.saveSchedule(getApplicationContext(), schedule);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-
-
             // start aware and plugins
             Aware.startAWARE();
 
@@ -269,24 +260,15 @@ public class Plugin extends Aware_Plugin {
             //Initialize our plugin's settings
             Aware.setSetting(this, Settings.STATUS_PLUGIN_INNOSTAVA, true);
 
-            try {
-                Scheduler.Schedule schedule = new Scheduler.Schedule("schedule_" + c.toString());
-                schedule.setTimer(c)
-                        .setActionType(Scheduler.ACTION_TYPE_BROADCAST)
-                        .setActionIntentAction(broadcast_receiver); //with this action
-
-                Scheduler.saveSchedule(getApplicationContext(), schedule);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-
-
         } else {
             Intent permissions = new Intent(this, PermissionsHandler.class);
             permissions.putExtra(PermissionsHandler.EXTRA_REQUIRED_PERMISSIONS, REQUIRED_PERMISSIONS);
             permissions.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(permissions);
         }
+
+        Log.d(TAG, "starting first check cycle with " + activity + " at " + location);
+        handler.postDelayed(new ESMCheckRunnable(activity, location), 60000);
 
         return super.onStartCommand(intent, flags, startId);
     }

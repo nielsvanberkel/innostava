@@ -38,4 +38,24 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Synchronise" />
+
+    <Button
+        android:id="@+id/add_comment"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Add free comment" />
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Current activity:"
+        android:id="@+id/current_activity"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Current location:"
+        android:id="@+id/current_location"/>
+
 </LinearLayout>

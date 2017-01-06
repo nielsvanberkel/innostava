@@ -1,7 +1,10 @@
 package com.aware.plugin.InnoStaVa;
 
 import android.Manifest;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -16,6 +19,8 @@ import android.widget.Toast;
 import com.aware.Applications;
 import com.aware.Aware;
 import com.aware.Aware_Preferences;
+import com.aware.plugin.bluetooth_beacon_detect.*;
+import com.aware.plugin.bluetooth_beacon_detect.Provider;
 import com.aware.ui.PermissionsHandler;
 
 import java.util.ArrayList;
@@ -27,23 +32,56 @@ import java.util.ArrayList;
 public class InnoStaVa extends AppCompatActivity {
 
     private TextView device_id;
-    private Button join_study, set_settings, sync_data;
+    private Button join_study, set_settings, sync_data, free_comment;
 
     private ArrayList<String> REQUIRED_PERMISSIONS = new ArrayList<>();
 
+    private ActivityLocationReceiver br;
+    private class ActivityLocationReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(com.aware.plugin.google.activity_recognition.Plugin.ACTION_AWARE_GOOGLE_ACTIVITY_RECOGNITION)) {
+                current_activity.setText("Current activity: " + Utils.getActivityName(intent.getIntExtra(com.aware.plugin.google.activity_recognition.Plugin.EXTRA_ACTIVITY, -1)));
+            }
+            else if (intent.getAction().equals(com.aware.plugin.bluetooth_beacon_detect.Plugin.ACTION_AWARE_PLUGIN_BT_BEACON_NEAREST)) {
+                current_location.setText("Current location: " + intent.getStringExtra(Provider.NearestBeacon_Data.MAC_ADDRESS));
+            }
+        }
+    }
+
+    private Context context;
+
+    TextView current_activity;
+    TextView current_location;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        Intent aware = new Intent(this, Aware.class);
-        startService(aware);
+        context = this;
 
         setContentView(R.layout.card);
         device_id = (TextView) findViewById(R.id.device_id);
         join_study = (Button) findViewById(R.id.join_study);
         set_settings = (Button) findViewById(R.id.set_settings);
         sync_data = (Button) findViewById(R.id.sync_data);
-        
+        free_comment = (Button) findViewById(R.id.add_comment);
+        current_activity = (TextView) findViewById(R.id.current_activity);
+        current_location = (TextView) findViewById(R.id.current_location);
+
+        Intent aware = new Intent(this, Aware.class);
+        startService(aware);
+
+        Intent startPlugin = new Intent(this, Plugin.class);
+        startService(startPlugin);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        String device_id_string = "UUID : " + Aware.getSetting(this, Aware_Preferences.DEVICE_ID);
+        device_id.setText(device_id_string);
+
         REQUIRED_PERMISSIONS.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
         REQUIRED_PERMISSIONS.add(Manifest.permission.ACCESS_WIFI_STATE);
         REQUIRED_PERMISSIONS.add(Manifest.permission.BLUETOOTH);
@@ -70,27 +108,37 @@ public class InnoStaVa extends AppCompatActivity {
             finish();
         } else {
             Applications.isAccessibilityServiceActive(getApplicationContext());
-//            Aware.joinStudy(getApplicationContext(), "https://api.awareframework.com/index.php/webservice/index/989/73JTLkqEcwWZ");
-
-            Toast.makeText(getApplicationContext(), "Thanks for joining!", Toast.LENGTH_SHORT).show();
+            if (!Aware.isStudy(this)) Aware.joinStudy(getApplicationContext(), "https://api.awareframework.com/index.php/webservice/index/989/73JTLkqEcwWZ");
         }
 
-        Intent startPlugin = new Intent(this, Plugin.class);
-        startService(startPlugin);
-    }
+        free_comment.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent startFreeCommentOnly = new Intent(context, InnoStaVaESM.class);
+                startFreeCommentOnly.putExtra(InnoStaVaESM.FREE_COMMENT_ONLY, true);
+                startActivity(startFreeCommentOnly);
+            }
+        });
 
-    @Override
-    protected void onResume() {
-        super.onResume();
+        br = new ActivityLocationReceiver();
+        IntentFilter alfilter = new IntentFilter();
+        alfilter.addAction(com.aware.plugin.google.activity_recognition.Plugin.ACTION_AWARE_GOOGLE_ACTIVITY_RECOGNITION);
+        alfilter.addAction(com.aware.plugin.bluetooth_beacon_detect.Plugin.ACTION_AWARE_PLUGIN_BT_BEACON_NEAREST);
+        registerReceiver(br, alfilter);
 
-        String device_id_string = "UUID : " + Aware.getSetting(this, Aware_Preferences.DEVICE_ID);
-        device_id.setText(device_id_string);
 
         if (Aware.isStudy(getApplicationContext())) {
             join_study.setEnabled(false);
             set_settings.setEnabled(false);
         } else {
             sync_data.setVisibility(View.INVISIBLE);
+            free_comment.setVisibility(View.INVISIBLE);
         }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(br);
     }
 }

@@ -10,6 +10,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.RatingBar;
@@ -30,6 +31,7 @@ import java.util.HashMap;
  */
 
 public class InnoStaVaESM extends Activity {
+    public static final String FREE_COMMENT_ONLY = "FREE_COMMENT_ONLY";
 
     CharSequence warning = "Please complete all questions!";
     long start_time;
@@ -43,8 +45,8 @@ public class InnoStaVaESM extends Activity {
         Log.d("Niels", "start time : " + start_time);
         Log.d("Niels", "start time String : " + String.valueOf(start_time));
 
-        // Notification clicked
-        prepare_v1();
+        if (getIntent().hasExtra(FREE_COMMENT_ONLY)) prepare_v7();
+        else prepare_v1();
 
         Log.d("Niels", "InnoStaVa ESM onCreate called!");
     }
@@ -338,6 +340,19 @@ public class InnoStaVaESM extends Activity {
         });
     }
 
+    private void prepare_v7() {
+        setContentView(R.layout.v_7);
+        final Button v7_finish = (Button) findViewById(R.id.v7_finish);
+        final EditText free_text = (EditText) findViewById(R.id.v7_freetext);
+        v7_finish.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                answers.put("v7_freetext", free_text.getText().toString());
+                insert_db();
+                finish();
+            }
+        });
+    }
 
     private void insert_db() {
         ContentValues context_data = new ContentValues();
