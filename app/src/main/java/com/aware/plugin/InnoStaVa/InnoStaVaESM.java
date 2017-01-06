@@ -13,6 +13,7 @@ import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.RatingBar;
+import android.widget.TimePicker;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
@@ -20,6 +21,7 @@ import com.aware.Aware;
 import com.aware.Aware_Preferences;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 
 /**
@@ -29,9 +31,11 @@ import java.util.HashMap;
 public class InnoStaVaESM extends Activity {
     public static final String FREE_COMMENT_ONLY = "FREE_COMMENT_ONLY";
 
-    CharSequence warning = "Please complete all questions!";
+    CharSequence warning = "Muista täyttää kaikki kysymykset!";
     long start_time;
     HashMap<String, String> answers = new HashMap<>();
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,6 +49,30 @@ public class InnoStaVaESM extends Activity {
         else prepare_v1();
 
         Log.d("Niels", "InnoStaVa ESM onCreate called!");
+    }
+
+    int current_page = 1;
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if(current_page == 1) {
+            setContentView(R.layout.v_1);
+        } if(current_page == 2) {
+            setContentView(R.layout.v_2);
+        } if(current_page == 3) {
+            setContentView(R.layout.v_3);
+        } if(current_page == 4) {
+            setContentView(R.layout.v_4);
+        } if(current_page == 5) {
+            setContentView(R.layout.v_5);
+        } if(current_page == 6) {
+            setContentView(R.layout.v_6);
+        } if(current_page == 7) {
+            setContentView(R.layout.v_7);
+        }
+
     }
 
     private void prepare_v1() {
@@ -78,6 +106,7 @@ public class InnoStaVaESM extends Activity {
     }
 
     private void prepare_v2() {
+        current_page = 2;
         setContentView(R.layout.v_2);
         insert_db();
 
@@ -111,6 +140,7 @@ public class InnoStaVaESM extends Activity {
     }
 
     private void prepare_v3() {
+        current_page = 3;
         setContentView(R.layout.v_3);
         insert_db();
         final CheckBox v3_1 = (CheckBox) findViewById(R.id.v3_1);
@@ -155,6 +185,7 @@ public class InnoStaVaESM extends Activity {
     }
 
     private void prepare_v4() {
+        current_page = 4;
         setContentView(R.layout.v_4);
         insert_db();
 
@@ -205,6 +236,7 @@ public class InnoStaVaESM extends Activity {
     }
 
     private void prepare_v5() {
+        current_page = 5;
         setContentView(R.layout.v_5);
         insert_db();
         final RatingBar v5_rb1 = (RatingBar) findViewById(R.id.v5_rb1);
@@ -364,6 +396,7 @@ public class InnoStaVaESM extends Activity {
                 v5_answer.add(v5_1_answer + ";" + v5_2_answer + ";" + v5_3_answer + ";" + v5_4_answer + ";" + v5_5_answer + ";" +
                         v5_6_answer + ";" + v5_7_answer + ";" + v5_8_answer + ";" + v5_9_answer);
 
+
                 answers.put("V5", String.valueOf(v5_answer));
 
                 prepare_v6();
@@ -372,17 +405,26 @@ public class InnoStaVaESM extends Activity {
     }
 
     private void prepare_v6() {
+        current_page = 6;
         setContentView(R.layout.v_6);
         insert_db();
         final Button v6_next = (Button) findViewById(R.id.v6_next);
+
+        final TimePicker v6_timepicker = (TimePicker) findViewById(R.id.v6_time);
+        v6_timepicker.setIs24HourView(true);
+        v6_timepicker.setCurrentHour(Calendar.getInstance().get(Calendar.HOUR_OF_DAY));
+
+        final EditText v6_2 = (EditText) findViewById(R.id.v6_2);
+
         v6_next.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-
-                // TODO
+                answers.put("V6", String.valueOf(v6_timepicker.getCurrentHour() + ":" + v6_timepicker.getCurrentMinute()));
+                answers.put("V6_2", String.valueOf(v6_2.getText()));
 
                 insert_db();
 
                 // close application
+                current_page = 1;
                 finish();
             }
         });
@@ -397,6 +439,9 @@ public class InnoStaVaESM extends Activity {
             public void onClick(View v) {
                 answers.put("v7_freetext", free_text.getText().toString());
                 insert_db();
+
+                // close application
+                current_page = 1;
                 finish();
             }
         });
