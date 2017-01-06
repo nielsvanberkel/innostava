@@ -51,9 +51,12 @@ public class Plugin extends Aware_Plugin {
             // nearest beacon
             if (intent.getAction().equals(com.aware.plugin.bluetooth_beacon_detect.Plugin.ACTION_AWARE_PLUGIN_BT_BEACON_NEAREST)) {
                 Log.d(TAG, "nearest beacon: "  + intent.getStringExtra(com.aware.plugin.bluetooth_beacon_detect.Provider.BluetoothBeacon_Data.MAC_ADDRESS));
+                // if a new location
                 if (!intent.getStringExtra(com.aware.plugin.bluetooth_beacon_detect.Provider.BluetoothBeacon_Data.MAC_ADDRESS).equals(location)) {
                     location = intent.getStringExtra(com.aware.plugin.bluetooth_beacon_detect.Provider.BluetoothBeacon_Data.MAC_ADDRESS);
                     location_changed = System.currentTimeMillis();
+                    // if user also currently still, check again in one minute to send esm
+                    if (activity == ACTIVITY_STILL) handler.postDelayed(new ESMCheckRunnable(activity, location), 60000);
                 }
                 else if (System.currentTimeMillis() - ESM_TRIGGER_THRESHOLD_MILLIS > location_changed &&
                         System.currentTimeMillis() - ESM_TRIGGER_THRESHOLD_MILLIS > activity_changed) {
@@ -83,7 +86,6 @@ public class Plugin extends Aware_Plugin {
 
     private class ESMCheckRunnable implements Runnable {
         public ESMCheckRunnable(final int activity, final String location) {
-            checkPending = true;
             this.checked_activity = activity;
             this.checked_location = location;
         }
@@ -104,8 +106,7 @@ public class Plugin extends Aware_Plugin {
             }
             // start new
             Log.d(TAG, "starting new check cycle with " + activity + " at " + location);
-            if (!checkPending) handler.postDelayed(new ESMCheckRunnable(activity, location), 60000);
-            checkPending = false;
+
         }
     }
 
@@ -241,10 +242,6 @@ public class Plugin extends Aware_Plugin {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
-        Log.d(TAG, "onStartCommand called");
-
-        Calendar c = Calendar.getInstance();
-
         boolean permissions_ok = true;
         for (String p : REQUIRED_PERMISSIONS) {
             if (ContextCompat.checkSelfPermission(this, p) != PackageManager.PERMISSION_GRANTED) {
@@ -266,9 +263,6 @@ public class Plugin extends Aware_Plugin {
             permissions.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(permissions);
         }
-
-        Log.d(TAG, "starting first check cycle with " + activity + " at " + location);
-        handler.postDelayed(new ESMCheckRunnable(activity, location), 60000);
 
         return super.onStartCommand(intent, flags, startId);
     }

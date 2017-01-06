@@ -33,6 +33,8 @@ public class InnoStaVa extends AppCompatActivity {
 
     private TextView device_id;
     private Button join_study, set_settings, sync_data, free_comment;
+    int activity = -1;
+    String location = "";
 
     private ArrayList<String> REQUIRED_PERMISSIONS = new ArrayList<>();
 
@@ -42,9 +44,11 @@ public class InnoStaVa extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(com.aware.plugin.google.activity_recognition.Plugin.ACTION_AWARE_GOOGLE_ACTIVITY_RECOGNITION)) {
+                activity = intent.getIntExtra(com.aware.plugin.google.activity_recognition.Plugin.EXTRA_ACTIVITY, -1);
                 current_activity.setText("Current activity: " + Utils.getActivityName(intent.getIntExtra(com.aware.plugin.google.activity_recognition.Plugin.EXTRA_ACTIVITY, -1)));
             }
             else if (intent.getAction().equals(com.aware.plugin.bluetooth_beacon_detect.Plugin.ACTION_AWARE_PLUGIN_BT_BEACON_NEAREST)) {
+                location = intent.getStringExtra(Provider.NearestBeacon_Data.MAC_ADDRESS);
                 current_location.setText("Current location: " + intent.getStringExtra(Provider.NearestBeacon_Data.MAC_ADDRESS));
             }
         }
@@ -67,6 +71,12 @@ public class InnoStaVa extends AppCompatActivity {
         free_comment = (Button) findViewById(R.id.add_comment);
         current_activity = (TextView) findViewById(R.id.current_activity);
         current_location = (TextView) findViewById(R.id.current_location);
+
+        br = new ActivityLocationReceiver();
+        IntentFilter alfilter = new IntentFilter();
+        alfilter.addAction(com.aware.plugin.google.activity_recognition.Plugin.ACTION_AWARE_GOOGLE_ACTIVITY_RECOGNITION);
+        alfilter.addAction(com.aware.plugin.bluetooth_beacon_detect.Plugin.ACTION_AWARE_PLUGIN_BT_BEACON_NEAREST);
+        registerReceiver(br, alfilter);
 
         Intent aware = new Intent(this, Aware.class);
         startService(aware);
@@ -120,12 +130,8 @@ public class InnoStaVa extends AppCompatActivity {
             }
         });
 
-        br = new ActivityLocationReceiver();
-        IntentFilter alfilter = new IntentFilter();
-        alfilter.addAction(com.aware.plugin.google.activity_recognition.Plugin.ACTION_AWARE_GOOGLE_ACTIVITY_RECOGNITION);
-        alfilter.addAction(com.aware.plugin.bluetooth_beacon_detect.Plugin.ACTION_AWARE_PLUGIN_BT_BEACON_NEAREST);
-        registerReceiver(br, alfilter);
-
+        current_activity.setText("Current activity: " + activity);
+        current_location.setText("Current location: " + location);
 
         if (Aware.isStudy(getApplicationContext())) {
             join_study.setEnabled(false);

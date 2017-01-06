@@ -3,6 +3,7 @@ package com.aware.plugin.InnoStaVa;
 import android.app.Activity;
 import android.content.ContentValues;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.util.Log;
@@ -10,10 +11,16 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+<<<<<<< HEAD
 import android.widget.EditText;
+=======
+import android.widget.GridLayout;
+import android.widget.LinearLayout;
+>>>>>>> c96284ec4de24a907ce7864770d0fc9c3be8cef7
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.RatingBar;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
@@ -162,12 +169,47 @@ public class InnoStaVaESM extends Activity {
         setContentView(R.layout.v_4);
         insert_db();
 
+        final CheckBox v4_1 = (CheckBox) findViewById(R.id.v4_1);
+        final CheckBox v4_2 = (CheckBox) findViewById(R.id.v4_2);
+        final CheckBox v4_3 = (CheckBox) findViewById(R.id.v4_3);
+        final CheckBox v4_4 = (CheckBox) findViewById(R.id.v4_4);
+        final CheckBox v4_5 = (CheckBox) findViewById(R.id.v4_5);
+        final CheckBox v4_6 = (CheckBox) findViewById(R.id.v4_6);
+        final CheckBox v4_7 = (CheckBox) findViewById(R.id.v4_7);
+        final CheckBox v4_8 = (CheckBox) findViewById(R.id.v4_8);
+        final CheckBox v4_9 = (CheckBox) findViewById(R.id.v4_9);
+        final CheckBox v4_10 = (CheckBox) findViewById(R.id.v4_10);
+
         final Button v4_next = (Button) findViewById(R.id.v4_next);
         v4_next.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
 
+                ArrayList<String> v4_answer = new ArrayList<>();
+                v4_answer.clear();
 
+                if(v4_1.isChecked()) {
+                    v4_answer.add(v4_1.getText().toString() + ";");
+                } if (v4_2.isChecked()) {
+                    v4_answer.add(v4_2.getText().toString() + ";");
+                } if (v4_3.isChecked()) {
+                    v4_answer.add(v4_3.getText().toString() + ";");
+                } if (v4_4.isChecked()) {
+                    v4_answer.add(v4_4.getText().toString() + ";");
+                } if (v4_5.isChecked()) {
+                    v4_answer.add(v4_5.getText().toString() + ";");
+                } if (v4_6.isChecked()) {
+                    v4_answer.add(v4_6.getText().toString() + ";");
+                } if (v4_7.isChecked()) {
+                    v4_answer.add(v4_7.getText().toString() + ";");
+                } if (v4_8.isChecked()) {
+                    v4_answer.add(v4_8.getText().toString() + ";");
+                } if (v4_9.isChecked()) {
+                    v4_answer.add(v4_9.getText().toString() + ";");
+                } if (v4_10.isChecked()) {
+                    v4_answer.add(v4_10.getText().toString() + ";");
+                }
 
+                answers.put("V4", String.valueOf(v4_answer));
                 prepare_v5();
             }
         });
@@ -205,6 +247,7 @@ public class InnoStaVaESM extends Activity {
                     buttonView.setBackgroundColor(Color.DKGRAY);
                 } else {
                     v5_rb1.setIsIndicator(false);
+                    buttonView.setBackgroundColor(Color.LTGRAY);
                 }
             }
         });
@@ -214,8 +257,10 @@ public class InnoStaVaESM extends Activity {
                 if (isChecked) {
                     v5_rb2.setRating(0);
                     v5_rb2.setIsIndicator(true);
+                    buttonView.setBackgroundColor(Color.DKGRAY);
                 } else {
                     v5_rb2.setIsIndicator(false);
+                    buttonView.setBackgroundColor(Color.LTGRAY);
                 }
             }
         });
@@ -225,8 +270,10 @@ public class InnoStaVaESM extends Activity {
                 if (isChecked) {
                     v5_rb3.setRating(0);
                     v5_rb3.setIsIndicator(true);
+                    buttonView.setBackgroundColor(Color.DKGRAY);
                 } else {
                     v5_rb3.setIsIndicator(false);
+                    buttonView.setBackgroundColor(Color.LTGRAY);
                 }
             }
         });
@@ -236,8 +283,10 @@ public class InnoStaVaESM extends Activity {
                 if (isChecked) {
                     v5_rb4.setRating(0);
                     v5_rb4.setIsIndicator(true);
+                    buttonView.setBackgroundColor(Color.DKGRAY);
                 } else {
                     v5_rb4.setIsIndicator(false);
+                    buttonView.setBackgroundColor(Color.LTGRAY);
                 }
             }
         });
@@ -247,8 +296,10 @@ public class InnoStaVaESM extends Activity {
                 if (isChecked) {
                     v5_rb5.setRating(0);
                     v5_rb5.setIsIndicator(true);
+                    buttonView.setBackgroundColor(Color.DKGRAY);
                 } else {
                     v5_rb5.setIsIndicator(false);
+                    buttonView.setBackgroundColor(Color.LTGRAY);
                 }
             }
         });
@@ -258,8 +309,10 @@ public class InnoStaVaESM extends Activity {
                 if (isChecked) {
                     v5_rb6.setRating(0);
                     v5_rb6.setIsIndicator(true);
+                    buttonView.setBackgroundColor(Color.DKGRAY);
                 } else {
                     v5_rb6.setIsIndicator(false);
+                    buttonView.setBackgroundColor(Color.LTGRAY);
                 }
             }
         });
@@ -269,8 +322,10 @@ public class InnoStaVaESM extends Activity {
                 if (isChecked) {
                     v5_rb7.setRating(0);
                     v5_rb7.setIsIndicator(true);
+                    buttonView.setBackgroundColor(Color.DKGRAY);
                 } else {
                     v5_rb7.setIsIndicator(false);
+                    buttonView.setBackgroundColor(Color.LTGRAY);
                 }
             }
         });
@@ -280,8 +335,10 @@ public class InnoStaVaESM extends Activity {
                 if (isChecked) {
                     v5_rb8.setRating(0);
                     v5_rb8.setIsIndicator(true);
+                    buttonView.setBackgroundColor(Color.DKGRAY);
                 } else {
                     v5_rb8.setIsIndicator(false);
+                    buttonView.setBackgroundColor(Color.LTGRAY);
                 }
             }
         });
@@ -291,8 +348,10 @@ public class InnoStaVaESM extends Activity {
                 if (isChecked) {
                     v5_rb9.setRating(0);
                     v5_rb9.setIsIndicator(true);
+                    buttonView.setBackgroundColor(Color.DKGRAY);
                 } else {
                     v5_rb9.setIsIndicator(false);
+                    buttonView.setBackgroundColor(Color.LTGRAY);
                 }
             }
         });
