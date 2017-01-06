@@ -37,8 +37,9 @@ public class Plugin extends Aware_Plugin {
     private final int ACTIVITY_STILL = 3;
     private final ArrayList<Integer> stillActivities = new ArrayList<>(Arrays.asList(3,5));
 
-    private String location = "unknown";
-    private long location_changed = System.currentTimeMillis();
+    private static String location = "unknown";
+    private static String previousSentLocation = "unknown";
+    private static long location_changed = System.currentTimeMillis();
     private int activity = -1;
     private long activity_changed = System.currentTimeMillis();
 
@@ -56,15 +57,16 @@ public class Plugin extends Aware_Plugin {
                     return;
                 }
                 Log.d(TAG, "nearest beacon: "  + intent.getStringExtra(com.aware.plugin.bluetooth_beacon_detect.Provider.BluetoothBeacon_Data.MAC_ADDRESS));
-                // if a new location
+                // if a new location and
+                if ((System.currentTimeMillis() - ESM_TRIGGER_THRESHOLD_MILLIS > location_changed) && intent.getStringExtra(com.aware.plugin.bluetooth_beacon_detect.Provider.BluetoothBeacon_Data.MAC_ADDRESS).equals(previousSentLocation)) {
+                    previousSentLocation = intent.getStringExtra(com.aware.plugin.bluetooth_beacon_detect.Provider.BluetoothBeacon_Data.MAC_ADDRESS);
+                    new Handler().postDelayed(new ESMCheckRunnable(activity, location), ESM_TRIGGER_THRESHOLD_MILLIS);
+                }
                 if (!intent.getStringExtra(com.aware.plugin.bluetooth_beacon_detect.Provider.BluetoothBeacon_Data.MAC_ADDRESS).equals(location)) {
                     location = intent.getStringExtra(com.aware.plugin.bluetooth_beacon_detect.Provider.BluetoothBeacon_Data.MAC_ADDRESS);
                     location_changed = System.currentTimeMillis();
                     // if user also currently still, check again in ESM_TRIGGER_THRESHOLD_MILLIS
                     //if (stillActivities.contains(activity)) new Handler().postDelayed(new ESMCheckRunnable(activity, location), ESM_TRIGGER_THRESHOLD_MILLIS);
-                }
-                else if (System.currentTimeMillis() - ESM_TRIGGER_THRESHOLD_MILLIS > location_changed) {
-                    sendESM();
                 }
             }
 //            else if (intent.getAction().equals(com.aware.plugin.google.activity_recognition.Plugin.ACTION_AWARE_GOOGLE_ACTIVITY_RECOGNITION)) {
@@ -104,15 +106,12 @@ public class Plugin extends Aware_Plugin {
         @Override
         public void run() {
             // if for some reason check done for non-still activity dont do anything
-            if (!stillActivities.contains(checked_activity)) return;
             Log.d(TAG, "delayed checking if a notification should be sent");
             checkOngoing = false;
-            if (checked_activity > -1 && !checked_location.equals("unknown") &&
-                stillActivities.contains(activity) &&
-                this.checked_location.equals(location) &&
-                System.currentTimeMillis() - ESM_TRIGGER_THRESHOLD_MILLIS > location_changed &&
-                System.currentTimeMillis() - ESM_TRIGGER_THRESHOLD_MILLIS > activity_changed) {
+            if (this.checked_location.equals(location) &&
+                System.currentTimeMillis() - ESM_TRIGGER_THRESHOLD_MILLIS > location_changed) {
                 // if all conditions match, send esm
+                previousSentLocation = checked_location;
                 sendESM();
             }
         }
