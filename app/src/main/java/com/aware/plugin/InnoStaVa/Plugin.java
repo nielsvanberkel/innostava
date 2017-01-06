@@ -51,22 +51,23 @@ public class Plugin extends Aware_Plugin {
         public void onReceive(Context context, Intent intent) {
             // nearest beacon
             if (intent.getAction().equals(com.aware.plugin.bluetooth_beacon_detect.Plugin.ACTION_AWARE_PLUGIN_BT_BEACON_NEAREST)) {
+                String new_location = intent.getStringExtra(com.aware.plugin.bluetooth_beacon_detect.Provider.BluetoothBeacon_Data.MAC_ADDRESS);
                 if (location.equals("unknown")) {
-                    location = intent.getStringExtra(com.aware.plugin.bluetooth_beacon_detect.Provider.BluetoothBeacon_Data.MAC_ADDRESS);
+                    location = new_location;
                     location_changed = System.currentTimeMillis();
+                    Toast.makeText(context, "new location: " + location, Toast.LENGTH_SHORT).show();
                     return;
                 }
-                Log.d(TAG, "nearest beacon: "  + intent.getStringExtra(com.aware.plugin.bluetooth_beacon_detect.Provider.BluetoothBeacon_Data.MAC_ADDRESS));
-                // if a new location and
-                if ((System.currentTimeMillis() - ESM_TRIGGER_THRESHOLD_MILLIS > location_changed) && intent.getStringExtra(com.aware.plugin.bluetooth_beacon_detect.Provider.BluetoothBeacon_Data.MAC_ADDRESS).equals(previousSentLocation)) {
-                    previousSentLocation = intent.getStringExtra(com.aware.plugin.bluetooth_beacon_detect.Provider.BluetoothBeacon_Data.MAC_ADDRESS);
-                    new Handler().postDelayed(new ESMCheckRunnable(activity, location), ESM_TRIGGER_THRESHOLD_MILLIS);
+                Log.d(TAG, "nearest beacon: "  + new_location);
+                // if a new location and not the same as where previous was sent
+                if (!new_location.equals(previousSentLocation)
+                        && !new_location.equals(location)) {
+                    new Handler().postDelayed(new ESMCheckRunnable(activity, new_location), ESM_TRIGGER_THRESHOLD_MILLIS);
                 }
-                if (!intent.getStringExtra(com.aware.plugin.bluetooth_beacon_detect.Provider.BluetoothBeacon_Data.MAC_ADDRESS).equals(location)) {
-                    location = intent.getStringExtra(com.aware.plugin.bluetooth_beacon_detect.Provider.BluetoothBeacon_Data.MAC_ADDRESS);
+                if (!new_location.equals(location)) {
+                    location = new_location;
                     location_changed = System.currentTimeMillis();
-                    // if user also currently still, check again in ESM_TRIGGER_THRESHOLD_MILLIS
-                    //if (stillActivities.contains(activity)) new Handler().postDelayed(new ESMCheckRunnable(activity, location), ESM_TRIGGER_THRESHOLD_MILLIS);
+                    Toast.makeText(context, "changed new location: " + location, Toast.LENGTH_SHORT).show();
                 }
             }
 //            else if (intent.getAction().equals(com.aware.plugin.google.activity_recognition.Plugin.ACTION_AWARE_GOOGLE_ACTIVITY_RECOGNITION)) {
@@ -106,10 +107,11 @@ public class Plugin extends Aware_Plugin {
         @Override
         public void run() {
             // if for some reason check done for non-still activity dont do anything
-            Log.d(TAG, "delayed checking if a notification should be sent");
+            Toast.makeText(context, "delayed checking if a notification should be sent from " + location + " while previous is " + this.checked_location, Toast.LENGTH_LONG).show();
             checkOngoing = false;
             if (this.checked_location.equals(location) &&
-                System.currentTimeMillis() - ESM_TRIGGER_THRESHOLD_MILLIS > location_changed) {
+                System.currentTimeMillis() - ESM_TRIGGER_THRESHOLD_MILLIS > location_changed
+                    && !previousSentLocation.equals(checked_location)) {
                 // if all conditions match, send esm
                 previousSentLocation = checked_location;
                 sendESM();
