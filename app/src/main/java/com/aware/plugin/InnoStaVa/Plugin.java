@@ -23,19 +23,19 @@ import com.aware.Aware;
 import com.aware.Aware_Preferences;
 import com.aware.ui.PermissionsHandler;
 import com.aware.utils.Aware_Plugin;
-import com.aware.utils.Scheduler;
 
-import org.json.JSONException;
-
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 
 public class Plugin extends Aware_Plugin {
     public static String broadcast_receiver = "ACTION_INNOSTAVA_ESM";
     MyReceiver myReceiver;
 
-    private static final int ESM_TRIGGER_THRESHOLD_MILLIS = 180000;
+    private static final int ESM_TRIGGER_THRESHOLD_MILLIS = 3000;
 
     private final int ACTIVITY_STILL = 3;
+    private final ArrayList<Integer> stillActivities = new ArrayList<>(Arrays.asList(3,5));
 
     private String location = "unknown";
     private long location_changed = System.currentTimeMillis();
@@ -50,39 +50,50 @@ public class Plugin extends Aware_Plugin {
         public void onReceive(Context context, Intent intent) {
             // nearest beacon
             if (intent.getAction().equals(com.aware.plugin.bluetooth_beacon_detect.Plugin.ACTION_AWARE_PLUGIN_BT_BEACON_NEAREST)) {
+                if (location.equals("unknown")) {
+                    location = intent.getStringExtra(com.aware.plugin.bluetooth_beacon_detect.Provider.BluetoothBeacon_Data.MAC_ADDRESS);
+                    location_changed = System.currentTimeMillis();
+                    return;
+                }
                 Log.d(TAG, "nearest beacon: "  + intent.getStringExtra(com.aware.plugin.bluetooth_beacon_detect.Provider.BluetoothBeacon_Data.MAC_ADDRESS));
                 // if a new location
                 if (!intent.getStringExtra(com.aware.plugin.bluetooth_beacon_detect.Provider.BluetoothBeacon_Data.MAC_ADDRESS).equals(location)) {
                     location = intent.getStringExtra(com.aware.plugin.bluetooth_beacon_detect.Provider.BluetoothBeacon_Data.MAC_ADDRESS);
                     location_changed = System.currentTimeMillis();
-                    // if user also currently still, check again in one minute to send esm
-                    if (activity == ACTIVITY_STILL) handler.postDelayed(new ESMCheckRunnable(activity, location), 60000);
+                    // if user also currently still, check again in ESM_TRIGGER_THRESHOLD_MILLIS
+                    if (stillActivities.contains(activity)) new Handler().postDelayed(new ESMCheckRunnable(activity, location), ESM_TRIGGER_THRESHOLD_MILLIS);
                 }
                 else if (System.currentTimeMillis() - ESM_TRIGGER_THRESHOLD_MILLIS > location_changed &&
-                        System.currentTimeMillis() - ESM_TRIGGER_THRESHOLD_MILLIS > activity_changed) {
+                        System.currentTimeMillis() - ESM_TRIGGER_THRESHOLD_MILLIS > activity_changed
+                        && stillActivities.contains(activity)) {
                     sendESM();
-                }
-                if (!checkOngoing) {
-                    Log.d(TAG, "sending delayed check");
-                    new Thread(new ESMCheckRunnable(activity, location)).run();
                 }
             }
             else if (intent.getAction().equals(com.aware.plugin.google.activity_recognition.Plugin.ACTION_AWARE_GOOGLE_ACTIVITY_RECOGNITION)) {
                 Log.d(TAG, "checked_activity: " + intent.getIntExtra(com.aware.plugin.google.activity_recognition.Plugin.EXTRA_ACTIVITY, -1));
-                if (intent.getIntExtra(com.aware.plugin.google.activity_recognition.Plugin.EXTRA_CONFIDENCE, 100) > 75
+                if (activity < 0) {
+                    activity = intent.getIntExtra(com.aware.plugin.google.activity_recognition.Plugin.EXTRA_ACTIVITY, -1);
+                    activity_changed = System.currentTimeMillis();
+                    return;
+                }
+                if (intent.getIntExtra(com.aware.plugin.google.activity_recognition.Plugin.EXTRA_CONFIDENCE, 100) > 50
                         && !(intent.getIntExtra(com.aware.plugin.google.activity_recognition.Plugin.EXTRA_ACTIVITY, -1) == activity)) {
+                    // if both activities are considered "still", dont log activity changing
+                    if (stillActivities.contains(activity) && stillActivities.contains(intent.getIntExtra(com.aware.plugin.google.activity_recognition.Plugin.EXTRA_ACTIVITY, -1))) {
+                        return;
+                    }
                     activity = intent.getIntExtra(com.aware.plugin.google.activity_recognition.Plugin.EXTRA_ACTIVITY, -1);
                     activity_changed = System.currentTimeMillis();
                 }
+                // else if user is still and location unchanged for ESM_TRIGGER_THRESHOLD_MILLIS, send esm
                 else if (System.currentTimeMillis() - ESM_TRIGGER_THRESHOLD_MILLIS > location_changed &&
                         System.currentTimeMillis() - ESM_TRIGGER_THRESHOLD_MILLIS > activity_changed
-                        && activity == ACTIVITY_STILL) {
+                        && stillActivities.contains(activity)) {
                     sendESM();
                 }
             }
         }
     }
-    private static boolean checkPending = false;
 
     private class ESMCheckRunnable implements Runnable {
         public ESMCheckRunnable(final int activity, final String location) {
@@ -94,19 +105,18 @@ public class Plugin extends Aware_Plugin {
 
         @Override
         public void run() {
+            // if for some reason check done for non-still activity dont do anything
+            if (!stillActivities.contains(checked_activity)) return;
             Log.d(TAG, "delayed checking if a notification should be sent");
             checkOngoing = false;
             if (checked_activity > -1 && !checked_location.equals("unknown") &&
-                this.checked_activity == activity &&
+                stillActivities.contains(activity) &&
                 this.checked_location.equals(location) &&
                 System.currentTimeMillis() - ESM_TRIGGER_THRESHOLD_MILLIS > location_changed &&
                 System.currentTimeMillis() - ESM_TRIGGER_THRESHOLD_MILLIS > activity_changed) {
                 // if all conditions match, send esm
                 sendESM();
             }
-            // start new
-            Log.d(TAG, "starting new check cycle with " + activity + " at " + location);
-
         }
     }
 
@@ -114,9 +124,24 @@ public class Plugin extends Aware_Plugin {
     private final String MORNING_LIMIT = "morning_limit";
     private final String AFTERNOON_LIMIT = "afternoon_limit";
     private void sendESM() {
+        Calendar c = Calendar.getInstance();
+
+        NotificationCompat.Builder notification2 = new NotificationCompat.Builder(getApplicationContext())
+                .setSmallIcon(R.drawable.ic_stat_communication_live_help)
+                .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher))
+                .setAutoCancel(true)
+                .setContentTitle("Sent ESM")
+                .setContentText("" + c.get(Calendar.HOUR_OF_DAY) + ":" + c.get(Calendar.MINUTE));
+
+        NotificationManager notificationManager2 = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+        // Will display the notification in the notification bar
+        notificationManager2.notify((int) System.currentTimeMillis(), notification2.build());
+
+        Toast.makeText(context, "sending esm", Toast.LENGTH_SHORT).show();
+
         SharedPreferences sp = getSharedPreferences(ESM_LIMITS, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sp.edit();
-        Calendar c = Calendar.getInstance();
+        c = Calendar.getInstance();
         // no ESMS outside 8-16
         if (c.get(Calendar.HOUR_OF_DAY) < 8 || c.get(Calendar.HOUR_OF_DAY) > 16) return;
         // reset limits if required
@@ -159,15 +184,14 @@ public class Plugin extends Aware_Plugin {
 
     }
 
-    Handler handler;
-
+    private Context context;
     @Override
     public void onCreate() {
         super.onCreate();
 
-        handler = new Handler();
         TAG = "AWARE::" + getResources().getString(R.string.app_name);
 
+        context = this;
 //        Aware.setSetting(this, Aware_Preferences.DEBUG_FLAG, false);
 
         //Any active plugin/sensor shares its overall context using broadcasts
@@ -205,9 +229,6 @@ public class Plugin extends Aware_Plugin {
             Applications.isAccessibilityServiceActive(getApplicationContext());
             Aware.joinStudy(getApplicationContext(), "https://api.awareframework.com/index.php/webservice/index/989/73JTLkqEcwWZ");
 
-            Toast.makeText(getApplicationContext(), "Thanks for joining!", Toast.LENGTH_SHORT).show();
-
-
             DATABASE_TABLES = Provider.DATABASE_TABLES;
             TABLES_FIELDS = Provider.TABLES_FIELDS;
             CONTEXT_URIS = new Uri[]{
@@ -229,8 +250,9 @@ public class Plugin extends Aware_Plugin {
             // start aware and plugins
             Aware.startAWARE();
 
+            Aware.setSetting(this, "frequency_plugin_google_activity_recognition", 60);
             Aware.startPlugin(this, "com.aware.plugin.google.activity_recognition");
-            Aware.setSetting(this, "frequency_plugin_bluetooth_beacon_detect", 60000);
+            Aware.setSetting(this, "frequency_plugin_bluetooth_beacon_detect", 300000);
             Aware.startPlugin(this, "com.aware.plugin.bluetooth_beacon_detect");
 
             //Activate plugin -- do this ALWAYS as the last thing (this will restart your own plugin and apply the settings)
