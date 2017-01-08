@@ -51,30 +51,6 @@ public class InnoStaVaESM extends Activity {
         Log.d("Niels", "InnoStaVa ESM onCreate called!");
     }
 
-    int current_page = 1;
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-
-        if(current_page == 1) {
-            setContentView(R.layout.v_1);
-        } if(current_page == 2) {
-            setContentView(R.layout.v_2);
-        } if(current_page == 3) {
-            setContentView(R.layout.v_3);
-        } if(current_page == 4) {
-            setContentView(R.layout.v_4);
-        } if(current_page == 5) {
-            setContentView(R.layout.v_5);
-        } if(current_page == 6) {
-            setContentView(R.layout.v_6);
-        } if(current_page == 7) {
-            setContentView(R.layout.v_7);
-        }
-
-    }
-
     private void prepare_v1() {
         setContentView(R.layout.v_1);
 
@@ -83,6 +59,8 @@ public class InnoStaVaESM extends Activity {
         final Button v1_next = (Button) findViewById(R.id.v1_next);
         v1_next.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
+                Log.d("Niels", "v1 next clicked");
+
                 int radio_button_1 = v1_radio_group.getCheckedRadioButtonId(); //if -1, no radio button was checked
 
                 if (radio_button_1 != -1) {
@@ -106,7 +84,7 @@ public class InnoStaVaESM extends Activity {
     }
 
     private void prepare_v2() {
-        current_page = 2;
+        Log.d("Niels", "preparing v2");
         setContentView(R.layout.v_2);
         insert_db();
 
@@ -140,7 +118,6 @@ public class InnoStaVaESM extends Activity {
     }
 
     private void prepare_v3() {
-        current_page = 3;
         setContentView(R.layout.v_3);
         insert_db();
         final CheckBox v3_1 = (CheckBox) findViewById(R.id.v3_1);
@@ -185,7 +162,6 @@ public class InnoStaVaESM extends Activity {
     }
 
     private void prepare_v4() {
-        current_page = 4;
         setContentView(R.layout.v_4);
         insert_db();
 
@@ -236,7 +212,6 @@ public class InnoStaVaESM extends Activity {
     }
 
     private void prepare_v5() {
-        current_page = 5;
         setContentView(R.layout.v_5);
         insert_db();
         final RatingBar v5_rb1 = (RatingBar) findViewById(R.id.v5_rb1);
@@ -405,7 +380,6 @@ public class InnoStaVaESM extends Activity {
     }
 
     private void prepare_v6() {
-        current_page = 6;
         setContentView(R.layout.v_6);
         insert_db();
         final Button v6_next = (Button) findViewById(R.id.v6_next);
@@ -424,7 +398,6 @@ public class InnoStaVaESM extends Activity {
                 insert_db();
 
                 // close application
-                current_page = 1;
                 finish();
             }
         });
@@ -441,7 +414,6 @@ public class InnoStaVaESM extends Activity {
                 insert_db();
 
                 // close application
-                current_page = 1;
                 finish();
             }
         });
