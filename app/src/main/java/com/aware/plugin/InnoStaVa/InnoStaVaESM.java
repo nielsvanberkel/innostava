@@ -24,6 +24,8 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 
+import static com.aware.Aware.TAG;
+
 /**
  * Created by niels on 22/11/16.
  */
@@ -420,10 +422,12 @@ public class InnoStaVaESM extends Activity {
     }
 
     private void insert_db() {
-        ContentValues context_data = new ContentValues();
+        ContentValues context_data;
         ArrayList<String> added_keys = new ArrayList<>();
         // add each answer
         for (String question_key : answers.keySet()) {
+            Log.d(TAG, "storing: " + question_key);
+            context_data = new ContentValues();
             context_data.put(Provider.InnoStaVa_data.TIMESTAMP, System.currentTimeMillis());
             context_data.put(Provider.InnoStaVa_data.START_TIME, String.valueOf(start_time));
             context_data.put(Provider.InnoStaVa_data.DEVICE_ID, Aware.getSetting(getApplicationContext(), Aware_Preferences.DEVICE_ID));

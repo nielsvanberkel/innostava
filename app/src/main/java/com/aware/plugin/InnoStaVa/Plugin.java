@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Handler;
@@ -55,10 +56,8 @@ public class Plugin extends Aware_Plugin {
                 if (location.equals("unknown")) {
                     location = new_location;
                     location_changed = System.currentTimeMillis();
-                    Toast.makeText(context, "new location: " + location, Toast.LENGTH_SHORT).show();
                     return;
                 }
-                Log.d(TAG, "nearest beacon: "  + new_location);
                 // if a new location and not the same as where previous was sent
                 if (!new_location.equals(previousSentLocation)
                         && !new_location.equals(location)) {
@@ -67,7 +66,6 @@ public class Plugin extends Aware_Plugin {
                 if (!new_location.equals(location)) {
                     location = new_location;
                     location_changed = System.currentTimeMillis();
-                    Toast.makeText(context, "changed new location: " + location, Toast.LENGTH_SHORT).show();
                 }
             }
 //            else if (intent.getAction().equals(com.aware.plugin.google.activity_recognition.Plugin.ACTION_AWARE_GOOGLE_ACTIVITY_RECOGNITION)) {
@@ -107,7 +105,6 @@ public class Plugin extends Aware_Plugin {
         @Override
         public void run() {
             // if for some reason check done for non-still activity dont do anything
-            Toast.makeText(context, "delayed checking if a notification should be sent from " + location + " while previous is " + this.checked_location, Toast.LENGTH_LONG).show();
             checkOngoing = false;
             if (this.checked_location.equals(location) &&
                 System.currentTimeMillis() - ESM_TRIGGER_THRESHOLD_MILLIS > location_changed
@@ -119,9 +116,6 @@ public class Plugin extends Aware_Plugin {
         }
     }
 
-    private final String ESM_LIMITS = "esm_limits";
-    private final String MORNING_LIMIT = "morning_limit";
-    private final String AFTERNOON_LIMIT = "afternoon_limit";
     private void sendESM() {
         Calendar c = Calendar.getInstance();
 
@@ -136,51 +130,87 @@ public class Plugin extends Aware_Plugin {
         // Will display the notification in the notification bar
         notificationManager2.notify((int) System.currentTimeMillis(), notification2.build());
 
-        Toast.makeText(context, "sending esm", Toast.LENGTH_SHORT).show();
-
-        SharedPreferences sp = getSharedPreferences(ESM_LIMITS, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sp.edit();
         c = Calendar.getInstance();
-        // no ESMS outside 8-16
-        if (c.get(Calendar.HOUR_OF_DAY) < 8 || c.get(Calendar.HOUR_OF_DAY) > 16) return;
-        // reset limits if required
-        if (c.get(Calendar.HOUR_OF_DAY) < 12) editor.putInt(AFTERNOON_LIMIT, 0);
-        else if (c.get(Calendar.HOUR_OF_DAY) >= 12) editor.putInt(MORNING_LIMIT, 0);
-        editor.commit();
-        // check current limits
-        if ((c.get(Calendar.HOUR_OF_DAY) < 12 && sp.getInt(MORNING_LIMIT, 0) < 2) ||
-                c.get(Calendar.HOUR_OF_DAY) >= 12 && sp.getInt(AFTERNOON_LIMIT, 0) < 2 ){
+        Calendar prev_c = Calendar.getInstance();
 
-            Intent resultIntent = new Intent(getApplicationContext(), InnoStaVaESM.class);
-            PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 0, resultIntent, 0);
+        Cursor last_two = getContentResolver().query(Provider.InnoStaVa_data.CONTENT_URI, null, Provider.InnoStaVa_data.QUESTION_ID + "=?", new String[]{"V6"}, "TIMESTAMP DESC");
 
-            NotificationCompat.Builder notification = new NotificationCompat.Builder(getApplicationContext())
-                    .setSmallIcon(R.drawable.ic_stat_communication_live_help)
-                    .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher))
-                    .setContentIntent(pendingIntent)
-                    .setAutoCancel(true)
-                    .setContentTitle("Questionnaire waiting")
-                    .setContentText("Open notification to answer questionnaire.");
-
-            NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
-            // Will display the notification in the notification bar
-            notificationManager.notify(123, notification.build());
-            if (c.get(Calendar.HOUR_OF_DAY) < 12) {
-                editor.putInt(MORNING_LIMIT, sp.getInt(MORNING_LIMIT, 0) + 1);
+        if (last_two != null && last_two.moveToFirst()) {
+            // move to the second entry if able
+            if (!last_two.moveToNext()) {
+                // not enough data so always send
+                Toast.makeText(context, "sending esm since not enough data", Toast.LENGTH_SHORT).show();
+                last_two.close();
             }
             else {
-                editor.putInt(AFTERNOON_LIMIT, sp.getInt(AFTERNOON_LIMIT, 0) + 1);
+                prev_c.setTimeInMillis(last_two.getLong(last_two.getColumnIndex(Provider.InnoStaVa_data.TIMESTAMP)));
+                Toast.makeText(this, "Last ESM " + prev_c.get(Calendar.HOUR_OF_DAY) + ":" + prev_c.get(Calendar.MINUTE), Toast.LENGTH_LONG).show();
+                // no ESMS outside 8-16
+                if (8 < c.get(Calendar.HOUR_OF_DAY) && c.get(Calendar.HOUR_OF_DAY) > 17) {
+                    last_two.close();
+                    Toast.makeText(context, "no esm outside 8-17", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                // if last entry from yesterday
+                else if (c.get(Calendar.DAY_OF_YEAR) > prev_c.get(Calendar.DAY_OF_YEAR)) {
+                    last_two.close();
+                }
+                // if current time is morning and second to last entry was during afternoon
+                else if (c.get(Calendar.HOUR_OF_DAY) <= 12 && prev_c.get(Calendar.HOUR_OF_DAY) > 12) {
+                    // everything ok dont need to do anything
+                    Toast.makeText(context, "sending esm in the morning", Toast.LENGTH_SHORT).show();
+                    last_two.close();
+                }
+                // currently afternoon and last entry morning OR different day as last entry
+                else if (c.get(Calendar.HOUR_OF_DAY) > 12 && prev_c.get(Calendar.HOUR_OF_DAY) <= 12
+                        || !(c.get(Calendar.DAY_OF_YEAR) == prev_c.get(Calendar.DAY_OF_YEAR))) {
+                    // everything ok dont need to do anything
+                    Toast.makeText(context, "sending esm in the afternoon", Toast.LENGTH_SHORT).show();
+                    last_two.close();
+                }
+                // if no conditions match dont send
+                else {
+                    Toast.makeText(context, "no esm because too many already", Toast.LENGTH_SHORT).show();
+                    last_two.close();
+                    return;
+                }
             }
-            editor.apply();
-
-            ContentValues vals = new ContentValues();
-            vals.put(Provider.ESM_data.LOCATION, location);
-            vals.put(Provider.ESM_data.TIMESTAMP, System.currentTimeMillis());
-            vals.put(Provider.ESM_data.DEVICE_ID, Aware.getSetting(this, Aware_Preferences.DEVICE_ID));
-            getContentResolver().insert(Provider.ESM_data.CONTENT_URI, vals);
         }
+        else {
+            Log.d(TAG, "last two was null");
+        }
+        // check current limits
 
+        Intent resultIntent = new Intent(getApplicationContext(), InnoStaVaESM.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 0, resultIntent, 0);
 
+        NotificationCompat.Builder notification = new NotificationCompat.Builder(getApplicationContext())
+                .setSmallIcon(R.drawable.ic_stat_communication_live_help)
+                .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher))
+                .setContentIntent(pendingIntent)
+                .setAutoCancel(true)
+                .setContentTitle("Questionnaire waiting")
+                .setContentText("Open notification to answer questionnaire.");
+
+        NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+        // Will display the notification in the notification bar
+        notificationManager.notify(123, notification.build());
+
+        ContentValues vals = new ContentValues();
+        vals.put(Provider.ESM_data.LOCATION, location);
+        vals.put(Provider.ESM_data.TIMESTAMP, System.currentTimeMillis());
+        vals.put(Provider.ESM_data.DEVICE_ID, Aware.getSetting(this, Aware_Preferences.DEVICE_ID));
+        getContentResolver().insert(Provider.ESM_data.CONTENT_URI, vals);
+
+        // cancel notification after 5 mins
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+                // Will display the notification in the notification bar
+                notificationManager.cancel(123);
+            }
+        },300000);
     }
 
     private Context context;
