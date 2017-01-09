@@ -10,6 +10,7 @@
     <string name="v1_6">Lounas, kahvitauko ja muut tauot</string>
     <string name="v1_7">Johtoryhmätyöskentely</string>
     <string name="v1_8">Etätyöskentely</string>
+    <string name="v1_9">Jokin muu tilanne</string>
 
     <string name="v2_1">Tapaaminen yrityksen tiloissa</string>
     <string name="v2_2">Puhelin</string>
@@ -17,10 +18,11 @@
     <string name="v2_4">Tapaaminen toisaalla</string>
 
     <string name="v3_1">Oma työpiste</string>
-    <string name="v3_2">Jonkun toisen työpiste</string>
-    <string name="v3_3">Yhteinen taukotila aulassa</string>
-    <string name="v3_4">Kokoushuone</string>
-    <string name="v3_5">Valkotaulu</string>
+    <string name="v3_2">Jonkun toisen työpiste isossa huoneessa</string>
+    <string name="v3_3">Jonkun toisen työpiste pienessä huoneessa</string>
+    <string name="v3_4">Yhteinen taukotila aulassa</string>
+    <string name="v3_5">Kokoushuone</string>
+    <string name="v3_6">Valkotaulu</string>
 
     <string name="v4_1">Juha Aalto</string>
     <string name="v4_2">Pekka Korpela</string>
@@ -49,7 +51,7 @@
     <string name="instructions_v3">Valitse tila</string>
     <string name="instructions_v4">Kenen kanssa?</string>
     <string name="instructions_v5">Tukiko tila ...?</string>
-    <string name="instructions_v6">Aloitusaika</string>
+    <string name="instructions_v6">Milloin</string>
     <string name="instructions_v6_2">Kesto</string>
     <string name="instructions_v7">Vapaa kommentti</string>
 

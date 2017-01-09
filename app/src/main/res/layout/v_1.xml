@@ -84,6 +84,13 @@
                     android:layout_height="wrap_content"
                     android:id="@+id/v1_8"
                     android:layout_weight="1" />
+
+                <RadioButton
+                    android:text="@string/v1_9"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/v1_9"
+                    android:layout_weight="1" />
             </RadioGroup>
 
         </LinearLayout>
