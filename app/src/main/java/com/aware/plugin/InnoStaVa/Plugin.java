@@ -12,6 +12,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.BitmapFactory;
+import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Handler;
 import android.support.v4.app.NotificationCompat;
@@ -33,7 +34,7 @@ public class Plugin extends Aware_Plugin {
     public static String broadcast_receiver = "ACTION_INNOSTAVA_ESM";
     MyReceiver myReceiver;
 
-    private static final int ESM_TRIGGER_THRESHOLD_MILLIS = 3000;
+    private static final int ESM_TRIGGER_THRESHOLD_MILLIS = 60000;
 
     private final int ACTIVITY_STILL = 3;
     private final ArrayList<Integer> stillActivities = new ArrayList<>(Arrays.asList(3,5));
@@ -53,6 +54,9 @@ public class Plugin extends Aware_Plugin {
             // nearest beacon
             if (intent.getAction().equals(com.aware.plugin.bluetooth_beacon_detect.Plugin.ACTION_AWARE_PLUGIN_BT_BEACON_NEAREST)) {
                 String new_location = intent.getStringExtra(com.aware.plugin.bluetooth_beacon_detect.Provider.BluetoothBeacon_Data.MAC_ADDRESS);
+
+                Log.d("Aku", new_location);
+
                 if (location.equals("unknown")) {
                     location = new_location;
                     location_changed = System.currentTimeMillis();
@@ -104,6 +108,7 @@ public class Plugin extends Aware_Plugin {
 
         @Override
         public void run() {
+            Log.d("Aku", "running!");
             // if for some reason check done for non-still activity dont do anything
             checkOngoing = false;
             if (this.checked_location.equals(location) &&
@@ -119,9 +124,12 @@ public class Plugin extends Aware_Plugin {
     private void sendESM() {
         Calendar c = Calendar.getInstance();
 
+        Uri soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+
         NotificationCompat.Builder notification2 = new NotificationCompat.Builder(getApplicationContext())
                 .setSmallIcon(R.drawable.ic_stat_communication_live_help)
                 .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher))
+                .setSound(soundUri)
                 .setAutoCancel(true)
                 .setContentTitle("Sent ESM")
                 .setContentText("" + c.get(Calendar.HOUR_OF_DAY) + ":" + c.get(Calendar.MINUTE));
