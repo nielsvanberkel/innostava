@@ -8,7 +8,6 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.BitmapFactory;
@@ -26,12 +25,10 @@ import com.aware.Aware_Preferences;
 import com.aware.ui.PermissionsHandler;
 import com.aware.utils.Aware_Plugin;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 
 public class Plugin extends Aware_Plugin {
-    private static final int ESM_TRIGGER_THRESHOLD_MILLIS = 60000;
+    private static final int ESM_TRIGGER_THRESHOLD_MILLIS = 300000;
 
     private static String location = "unknown";
     private static String previousSentLocation = "unknown";
@@ -101,9 +98,8 @@ public class Plugin extends Aware_Plugin {
             else {
                 prev_c.setTimeInMillis(last_two.getLong(last_two.getColumnIndex(Provider.InnoStaVa_data.TIMESTAMP)));
                 Toast.makeText(this, "Last ESM " + prev_c.get(Calendar.HOUR_OF_DAY) + ":" + prev_c.get(Calendar.MINUTE), Toast.LENGTH_LONG).show();
-                // no ESMS outside 8-16
-//                if (8 < c.get(Calendar.HOUR_OF_DAY) && c.get(Calendar.HOUR_OF_DAY) > 17) {
-                if (2 < c.get(Calendar.HOUR_OF_DAY) && c.get(Calendar.HOUR_OF_DAY) > 4) {
+                // no ESMS outside 8-17
+                if (8 < c.get(Calendar.HOUR_OF_DAY) && c.get(Calendar.HOUR_OF_DAY) > 17) {
                     last_two.close();
                     Toast.makeText(context, "no esm outside 8-17", Toast.LENGTH_SHORT).show();
                     return;
@@ -241,6 +237,7 @@ public class Plugin extends Aware_Plugin {
             Aware.setSetting(this, "frequency_plugin_google_activity_recognition", 60);
             Aware.startPlugin(this, "com.aware.plugin.google.activity_recognition");
             Aware.setSetting(this, "frequency_plugin_bluetooth_beacon_detect", 30000);
+            Aware.setSetting(this, "status_store_all_detected_beacons", false);
             Aware.startPlugin(this, "com.aware.plugin.bluetooth_beacon_detect");
 
             //Activate plugin -- do this ALWAYS as the last thing (this will restart your own plugin and apply the settings)
