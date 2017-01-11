@@ -81,6 +81,8 @@ public class InnoStaVa extends AppCompatActivity {
         Intent aware = new Intent(this, Aware.class);
         startService(aware);
 
+        Aware.startSignificant(this);
+
         Intent startPlugin = new Intent(this, Plugin.class);
         startService(startPlugin);
     }
