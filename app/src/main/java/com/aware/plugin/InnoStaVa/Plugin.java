@@ -31,21 +31,11 @@ import java.util.Arrays;
 import java.util.Calendar;
 
 public class Plugin extends Aware_Plugin {
-    public static String broadcast_receiver = "ACTION_INNOSTAVA_ESM";
-    MyReceiver myReceiver;
-
     private static final int ESM_TRIGGER_THRESHOLD_MILLIS = 60000;
-
-    private final int ACTIVITY_STILL = 3;
-    private final ArrayList<Integer> stillActivities = new ArrayList<>(Arrays.asList(3,5));
 
     private static String location = "unknown";
     private static String previousSentLocation = "unknown";
     private static long location_changed = System.currentTimeMillis();
-    private int activity = -1;
-    private long activity_changed = System.currentTimeMillis();
-
-    private static boolean checkOngoing = false;
 
     private EsmContextReceiver esmContextReceiver;
     private class EsmContextReceiver extends BroadcastReceiver {
@@ -65,54 +55,28 @@ public class Plugin extends Aware_Plugin {
                 // if a new location and not the same as where previous was sent
                 if (!new_location.equals(previousSentLocation)
                         && !new_location.equals(location)) {
-                    new Handler().postDelayed(new ESMCheckRunnable(activity, new_location), ESM_TRIGGER_THRESHOLD_MILLIS);
+                    new Handler().postDelayed(new ESMCheckRunnable(new_location), ESM_TRIGGER_THRESHOLD_MILLIS);
                 }
                 if (!new_location.equals(location)) {
                     location = new_location;
                     location_changed = System.currentTimeMillis();
                 }
             }
-//            else if (intent.getAction().equals(com.aware.plugin.google.activity_recognition.Plugin.ACTION_AWARE_GOOGLE_ACTIVITY_RECOGNITION)) {
-//                Log.d(TAG, "checked_activity: " + intent.getIntExtra(com.aware.plugin.google.activity_recognition.Plugin.EXTRA_ACTIVITY, -1));
-//                if (activity < 0) {
-//                    activity = intent.getIntExtra(com.aware.plugin.google.activity_recognition.Plugin.EXTRA_ACTIVITY, -1);
-//                    activity_changed = System.currentTimeMillis();
-//                    return;
-//                }
-//                if (intent.getIntExtra(com.aware.plugin.google.activity_recognition.Plugin.EXTRA_CONFIDENCE, 100) > 50
-//                        && !(intent.getIntExtra(com.aware.plugin.google.activity_recognition.Plugin.EXTRA_ACTIVITY, -1) == activity)) {
-//                    // if both activities are considered "still", dont log activity changing
-//                    if (stillActivities.contains(activity) && stillActivities.contains(intent.getIntExtra(com.aware.plugin.google.activity_recognition.Plugin.EXTRA_ACTIVITY, -1))) {
-//                        return;
-//                    }
-//                    activity = intent.getIntExtra(com.aware.plugin.google.activity_recognition.Plugin.EXTRA_ACTIVITY, -1);
-//                    activity_changed = System.currentTimeMillis();
-//                }
-//                // else if user is still and location unchanged for ESM_TRIGGER_THRESHOLD_MILLIS, send esm
-//                else if (System.currentTimeMillis() - ESM_TRIGGER_THRESHOLD_MILLIS > location_changed &&
-//                        System.currentTimeMillis() - ESM_TRIGGER_THRESHOLD_MILLIS > activity_changed
-//                        && stillActivities.contains(activity)) {
-//                    sendESM();
-//                }
-//            }
         }
     }
 
     private class ESMCheckRunnable implements Runnable {
-        public ESMCheckRunnable(final int activity, final String location) {
-            this.checked_activity = activity;
+        public ESMCheckRunnable(final String location) {
             this.checked_location = location;
         }
-        private int checked_activity;
         private String checked_location;
 
         @Override
         public void run() {
             Log.d("Aku", "running!");
             // if for some reason check done for non-still activity dont do anything
-            checkOngoing = false;
             if (this.checked_location.equals(location) &&
-                System.currentTimeMillis() - ESM_TRIGGER_THRESHOLD_MILLIS > location_changed
+                    ((System.currentTimeMillis() - ESM_TRIGGER_THRESHOLD_MILLIS) > location_changed)
                     && !previousSentLocation.equals(checked_location)) {
                 // if all conditions match, send esm
                 previousSentLocation = checked_location;
@@ -123,22 +87,6 @@ public class Plugin extends Aware_Plugin {
 
     private void sendESM() {
         Calendar c = Calendar.getInstance();
-
-        Uri soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-
-        NotificationCompat.Builder notification2 = new NotificationCompat.Builder(getApplicationContext())
-                .setSmallIcon(R.drawable.ic_stat_communication_live_help)
-                .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher))
-                .setSound(soundUri)
-                .setAutoCancel(true)
-                .setContentTitle("Sent ESM")
-                .setContentText("" + c.get(Calendar.HOUR_OF_DAY) + ":" + c.get(Calendar.MINUTE));
-
-        NotificationManager notificationManager2 = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
-        // Will display the notification in the notification bar
-        notificationManager2.notify((int) System.currentTimeMillis(), notification2.build());
-
-        c = Calendar.getInstance();
         Calendar prev_c = Calendar.getInstance();
 
         Cursor last_two = getContentResolver().query(Provider.InnoStaVa_data.CONTENT_URI, null, Provider.InnoStaVa_data.QUESTION_ID + "=?", new String[]{"V6"}, "TIMESTAMP DESC");
@@ -154,7 +102,8 @@ public class Plugin extends Aware_Plugin {
                 prev_c.setTimeInMillis(last_two.getLong(last_two.getColumnIndex(Provider.InnoStaVa_data.TIMESTAMP)));
                 Toast.makeText(this, "Last ESM " + prev_c.get(Calendar.HOUR_OF_DAY) + ":" + prev_c.get(Calendar.MINUTE), Toast.LENGTH_LONG).show();
                 // no ESMS outside 8-16
-                if (8 < c.get(Calendar.HOUR_OF_DAY) && c.get(Calendar.HOUR_OF_DAY) > 17) {
+//                if (8 < c.get(Calendar.HOUR_OF_DAY) && c.get(Calendar.HOUR_OF_DAY) > 17) {
+                if (2 < c.get(Calendar.HOUR_OF_DAY) && c.get(Calendar.HOUR_OF_DAY) > 4) {
                     last_two.close();
                     Toast.makeText(context, "no esm outside 8-17", Toast.LENGTH_SHORT).show();
                     return;
@@ -192,10 +141,12 @@ public class Plugin extends Aware_Plugin {
         Intent resultIntent = new Intent(getApplicationContext(), InnoStaVaESM.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 0, resultIntent, 0);
 
+        Uri soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         NotificationCompat.Builder notification = new NotificationCompat.Builder(getApplicationContext())
                 .setSmallIcon(R.drawable.ic_stat_communication_live_help)
                 .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher))
                 .setContentIntent(pendingIntent)
+                .setSound(soundUri)
                 .setAutoCancel(true)
                 .setContentTitle("Questionnaire waiting")
                 .setContentText("Open notification to answer questionnaire.");
@@ -273,10 +224,10 @@ public class Plugin extends Aware_Plugin {
                     Provider.ESM_data.CONTENT_URI
             };
 
-            myReceiver = new MyReceiver();
-            IntentFilter intentFilter = new IntentFilter();
-            intentFilter.addAction("ACTION_INNOSTAVA_ESM");
-            registerReceiver(myReceiver, intentFilter);
+//            myReceiver = new MyReceiver();
+//            IntentFilter intentFilter = new IntentFilter();
+//            intentFilter.addAction("ACTION_INNOSTAVA_ESM");
+//            registerReceiver(myReceiver, intentFilter);
 
             esmContextReceiver = new EsmContextReceiver();
             IntentFilter contextFilter = new IntentFilter();
@@ -285,7 +236,7 @@ public class Plugin extends Aware_Plugin {
             registerReceiver(esmContextReceiver, contextFilter);
 
             // start aware and plugins
-            Aware.startAWARE();
+            Aware.startAWARE(this);
 
             Aware.setSetting(this, "frequency_plugin_google_activity_recognition", 60);
             Aware.startPlugin(this, "com.aware.plugin.google.activity_recognition");
@@ -325,38 +276,37 @@ public class Plugin extends Aware_Plugin {
 
         return super.onStartCommand(intent, flags, startId);
     }
-
-    public class MyReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            try {
-                Intent resultIntent = new Intent(getApplicationContext(), InnoStaVaESM.class);
-                PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 0, resultIntent, 0);
-
-                NotificationCompat.Builder notification = new NotificationCompat.Builder(getApplicationContext())
-                        .setSmallIcon(R.drawable.ic_stat_communication_live_help)
-                        .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher))
-                        .setContentIntent(pendingIntent)
-                        .setAutoCancel(true)
-                        .setContentTitle("Questionnaire waiting")
-                        .setContentText("Open notification to answer questionnaire.");
-
-                NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
-                // Will display the notification in the notification bar
-                notificationManager.notify(123, notification.build());
-                // The subtext, which appears under the text on newer devices. This will show-up in the devices with Android 4.2 and above only
-                // notification.setSubText("Tap to view documentation about notifications.");
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
+//
+//    public class MyReceiver extends BroadcastReceiver {
+//        @Override
+//        public void onReceive(Context context, Intent intent) {
+//            try {
+//                Intent resultIntent = new Intent(getApplicationContext(), InnoStaVaESM.class);
+//                PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 0, resultIntent, 0);
+//
+//                NotificationCompat.Builder notification = new NotificationCompat.Builder(getApplicationContext())
+//                        .setSmallIcon(R.drawable.ic_stat_communication_live_help)
+//                        .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher))
+//                        .setContentIntent(pendingIntent)
+//                        .setAutoCancel(true)
+//                        .setContentTitle("Questionnaire waiting")
+//                        .setContentText("Open notification to answer questionnaire.");
+//
+//                NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+//                // Will display the notification in the notification bar
+//                notificationManager.notify(123, notification.build());
+//                // The subtext, which appears under the text on newer devices. This will show-up in the devices with Android 4.2 and above only
+//                // notification.setSubText("Tap to view documentation about notifications.");
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
+//        }
+//    }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
         unregisterReceiver(esmContextReceiver);
-        unregisterReceiver(myReceiver);
         Aware.stopPlugin(this, "com.aware.plugin.google.activity_recognition");
         Aware.stopPlugin(this, "com.aware.plugin.bluetooth_beacon_detect");
         //Stop AWARE

@@ -45,11 +45,11 @@ public class InnoStaVa extends AppCompatActivity {
         public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(com.aware.plugin.google.activity_recognition.Plugin.ACTION_AWARE_GOOGLE_ACTIVITY_RECOGNITION)) {
                 activity = intent.getIntExtra(com.aware.plugin.google.activity_recognition.Plugin.EXTRA_ACTIVITY, -1);
-                current_activity.setText("Current activity: " + Utils.getActivityName(intent.getIntExtra(com.aware.plugin.google.activity_recognition.Plugin.EXTRA_ACTIVITY, -1)));
+                if (current_activity != null) current_activity.setText("Current activity: " + Utils.getActivityName(intent.getIntExtra(com.aware.plugin.google.activity_recognition.Plugin.EXTRA_ACTIVITY, -1)));
             }
             else if (intent.getAction().equals(com.aware.plugin.bluetooth_beacon_detect.Plugin.ACTION_AWARE_PLUGIN_BT_BEACON_NEAREST)) {
                 location = intent.getStringExtra(Provider.NearestBeacon_Data.MAC_ADDRESS);
-                current_location.setText("Current location: " + intent.getStringExtra(Provider.NearestBeacon_Data.MAC_ADDRESS));
+                if (current_location != null) current_location.setText("Current location: " + intent.getStringExtra(Provider.NearestBeacon_Data.MAC_ADDRESS));
             }
         }
     }

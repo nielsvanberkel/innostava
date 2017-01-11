@@ -126,6 +126,7 @@ public class InnoStaVaESM extends Activity {
         final CheckBox v3_2 = (CheckBox) findViewById(R.id.v3_2);
         final CheckBox v3_3 = (CheckBox) findViewById(R.id.v3_3);
         final CheckBox v3_4 = (CheckBox) findViewById(R.id.v3_4);
+        final CheckBox v3_5 = (CheckBox) findViewById(R.id.v3_5);
 
         final Button v3_next = (Button) findViewById(R.id.v3_next);
         v3_next.setOnClickListener(new View.OnClickListener() {
@@ -148,6 +149,9 @@ public class InnoStaVaESM extends Activity {
                 } if (v3_4.isChecked()) {
                     something_checked = true;
                     v3_answer.add(v3_4.getText().toString() + ";");
+                } if (v3_5.isChecked()) {
+                    something_checked = true;
+                    v3_answer.add(v3_5.getText().toString() + ";");
                 }
 
                 if (something_checked == true) {
