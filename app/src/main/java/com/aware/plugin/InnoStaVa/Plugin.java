@@ -96,7 +96,7 @@ public class Plugin extends Aware_Plugin {
             // move to the second entry if able
             if (!last_two.moveToNext()) {
                 // not enough data so always send
-                Toast.makeText(context, "sending esm since not enough data", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(context, "sending esm since not enough data", Toast.LENGTH_SHORT).show();
                 last_two.close();
             }
             else {
@@ -105,7 +105,7 @@ public class Plugin extends Aware_Plugin {
                 // no ESMS outside 8-17
                 if (8 < c.get(Calendar.HOUR_OF_DAY) && c.get(Calendar.HOUR_OF_DAY) > 17) {
                     last_two.close();
-                    Toast.makeText(context, "no esm outside 8-17", Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(context, "no esm outside 8-17", Toast.LENGTH_SHORT).show();
                     return;
                 }
                 // if last entry from yesterday
@@ -115,19 +115,19 @@ public class Plugin extends Aware_Plugin {
                 // if current time is morning and second to last entry was during afternoon
                 else if (c.get(Calendar.HOUR_OF_DAY) <= 12 && prev_c.get(Calendar.HOUR_OF_DAY) > 12) {
                     // everything ok dont need to do anything
-                    Toast.makeText(context, "sending esm in the morning", Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(context, "sending esm in the morning", Toast.LENGTH_SHORT).show();
                     last_two.close();
                 }
                 // currently afternoon and last entry morning OR different day as last entry
                 else if (c.get(Calendar.HOUR_OF_DAY) > 12 && prev_c.get(Calendar.HOUR_OF_DAY) <= 12
                         || !(c.get(Calendar.DAY_OF_YEAR) == prev_c.get(Calendar.DAY_OF_YEAR))) {
                     // everything ok dont need to do anything
-                    Toast.makeText(context, "sending esm in the afternoon", Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(context, "sending esm in the afternoon", Toast.LENGTH_SHORT).show();
                     last_two.close();
                 }
                 // if no conditions match dont send
                 else {
-                    Toast.makeText(context, "no esm because too many already", Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(context, "no esm because too many already", Toast.LENGTH_SHORT).show();
                     last_two.close();
                     return;
                 }
