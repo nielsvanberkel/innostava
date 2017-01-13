@@ -53,8 +53,7 @@ public class Plugin extends Aware_Plugin {
                 }
                 // if a new location and not the same as where previous was sent
                 if (!new_location.equals(previousSentLocation)
-                        && !new_location.equals(location)
-                        && (System.currentTimeMillis() - last_sent_notification) >= 3600000 ) {
+                        && !new_location.equals(location)) {
                     new Handler().postDelayed(new ESMCheckRunnable(new_location), ESM_TRIGGER_THRESHOLD_MILLIS);
                 }
                 if (!new_location.equals(location)) {
@@ -75,7 +74,13 @@ public class Plugin extends Aware_Plugin {
         public void run() {
             Log.d("Aku", "running!");
             // if for some reason check done for non-still activity dont do anything
-            if (this.checked_location.equals(location) &&
+            String cur_location = "";
+            Cursor cur = getContentResolver().query(com.aware.plugin.bluetooth_beacon_detect.Provider.NearestBeacon_Data.CONTENT_URI, null, null, null, "TIMESTAMP DESC LIMIT 1");
+            if (cur != null && cur.moveToFirst()) {
+                cur_location = cur.getString(cur.getColumnIndex(com.aware.plugin.bluetooth_beacon_detect.Provider.NearestBeacon_Data.MAC_ADDRESS));
+                cur.close();
+            }
+            if (this.checked_location.equals(cur_location) &&
                     ((System.currentTimeMillis() - ESM_TRIGGER_THRESHOLD_MILLIS) > location_changed)
                     && !previousSentLocation.equals(checked_location)) {
                 // if all conditions match, send esm
