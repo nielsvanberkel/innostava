@@ -22,24 +22,24 @@ import java.util.HashMap;
 public class Provider extends ContentProvider {
 
     public static String AUTHORITY = "com.aware.plugin.InnoStaVa.provider.InnoStaVa"; //change to package.provider.your_plugin_name
-    public static final int DATABASE_VERSION = 15; //increase this if you make changes to the database structure, i.e., rename columns, etc.
+    public static final int DATABASE_VERSION = 16; //increase this if you make changes to the database structure, i.e., rename columns, etc.
 
     public static final String DATABASE_NAME = "questionnaire.db"; //the database filename, use plugin_xxx for plugins.
 
     //Add here your database table names, as many as you need
     public static final String DB_TBL_INNOSTAVA_QUESTION = "questionnaire";
-    public static final String DB_TBL_INNOSTAVA_ESMS = "esms";
+    public static final String DB_TBL_INNOSTAVA_NOTIFICATIONS = "innostava_notifications";
 
     //For each table, add two indexes: DIR and ITEM. The index needs to always increment. Next one is 3, and so on.
     private static final int QUESTION_DATA_DIR = 1;
     private static final int QUESTION_DATA_ITEM = 2;
-    private static final int ESM_DATA_DIR = 3;
-    private static final int ESM_DATA_ITEM = 4;
+    private static final int NOTIFICATION_DATA_DIR = 3;
+    private static final int NOTIFICATION_DATA_ITEM = 4;
 
     //Put tables names in this array so AWARE knows what you have on the database
     public static final String[] DATABASE_TABLES = {
             DB_TBL_INNOSTAVA_QUESTION,
-            DB_TBL_INNOSTAVA_ESMS
+            DB_TBL_INNOSTAVA_NOTIFICATIONS
     };
 
     //These are columns that we need to sync data, don't change this!
@@ -63,8 +63,8 @@ public class Provider extends ContentProvider {
         public static final String ANSWER = "answer";
     }
 
-    public static final class ESM_data implements AWAREColumns {
-        public static final Uri CONTENT_URI = Uri.parse("content://" + AUTHORITY + "/" + DB_TBL_INNOSTAVA_ESMS);
+    public static final class Sent_Notification_data implements AWAREColumns {
+        public static final Uri CONTENT_URI = Uri.parse("content://" + AUTHORITY + "/" + DB_TBL_INNOSTAVA_NOTIFICATIONS);
         public static final String CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/vnd.com.aware.plugin.InnoStaVa.provider.esms"; //modify me
         public static final String CONTENT_ITEM_TYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE + "/vnd.com.aware.plugin.InnoStaVa.provider.esms"; //modify me
 
@@ -80,18 +80,18 @@ public class Provider extends ContentProvider {
                     InnoStaVa_data.QUESTION_ID + " text default ''," +
                     InnoStaVa_data.ANSWER + " text default ''";
 
-    private static final String DB_TBL_ESMS_FIELDS =
-            ESM_data._ID + " integer primary key autoincrement," +
-                    ESM_data.START_TIME + " real default 0," +
-                    ESM_data.TIMESTAMP + " real default 0," +
-                    ESM_data.DEVICE_ID + " text default ''," +
-                    ESM_data.LOCATION + " text default ''";
+    private static final String DB_TBL_NOTIFICATIONS_FIELDS =
+            Sent_Notification_data._ID + " integer primary key autoincrement," +
+                    Sent_Notification_data.START_TIME + " real default 0," +
+                    Sent_Notification_data.TIMESTAMP + " real default 0," +
+                    Sent_Notification_data.DEVICE_ID + " text default ''," +
+                    Sent_Notification_data.LOCATION + " text default ''";
     /**
      * Share the fields with AWARE so we can replicate the table schema on the server
      */
     public static final String[] TABLES_FIELDS = {
             DB_TBL_INNOSTAVA_FIELDS,
-            DB_TBL_ESMS_FIELDS
+            DB_TBL_NOTIFICATIONS_FIELDS
     };
 
     //Helper variables for ContentProvider - don't change me
@@ -129,8 +129,8 @@ public class Provider extends ContentProvider {
         sUriMatcher.addURI(AUTHORITY, DATABASE_TABLES[0], QUESTION_DATA_DIR);
         sUriMatcher.addURI(AUTHORITY, DATABASE_TABLES[0] + "/#", QUESTION_DATA_ITEM);
 
-        sUriMatcher.addURI(AUTHORITY, DATABASE_TABLES[1], ESM_DATA_DIR);
-        sUriMatcher.addURI(AUTHORITY, DATABASE_TABLES[1] + "/#", ESM_DATA_ITEM);
+        sUriMatcher.addURI(AUTHORITY, DATABASE_TABLES[1], NOTIFICATION_DATA_DIR);
+        sUriMatcher.addURI(AUTHORITY, DATABASE_TABLES[1] + "/#", NOTIFICATION_DATA_ITEM);
 
         //Create each table hashmap so Android knows how to insert data to the database. Put ALL table fields.
         questionsHash = new HashMap<>();
@@ -142,11 +142,11 @@ public class Provider extends ContentProvider {
         questionsHash.put(InnoStaVa_data.ANSWER, InnoStaVa_data.ANSWER);
 
         esmsHash = new HashMap<>();
-        esmsHash.put(ESM_data._ID, ESM_data._ID);
-        esmsHash.put(ESM_data.START_TIME, ESM_data.START_TIME);
-        esmsHash.put(ESM_data.TIMESTAMP, ESM_data.TIMESTAMP);
-        esmsHash.put(ESM_data.DEVICE_ID, ESM_data.DEVICE_ID);
-        esmsHash.put(ESM_data.LOCATION, ESM_data.LOCATION);
+        esmsHash.put(Sent_Notification_data._ID, Sent_Notification_data._ID);
+        esmsHash.put(Sent_Notification_data.START_TIME, Sent_Notification_data.START_TIME);
+        esmsHash.put(Sent_Notification_data.TIMESTAMP, Sent_Notification_data.TIMESTAMP);
+        esmsHash.put(Sent_Notification_data.DEVICE_ID, Sent_Notification_data.DEVICE_ID);
+        esmsHash.put(Sent_Notification_data.LOCATION, Sent_Notification_data.LOCATION);
 
         return true;
     }
@@ -167,7 +167,7 @@ public class Provider extends ContentProvider {
                 qb.setTables(DATABASE_TABLES[0]);
                 qb.setProjectionMap(questionsHash); //the hashmap of the table
                 break;
-            case ESM_DATA_DIR:
+            case NOTIFICATION_DATA_DIR:
                 qb.setTables(DATABASE_TABLES[1]);
                 qb.setProjectionMap(esmsHash);
                 break;
@@ -198,10 +198,10 @@ public class Provider extends ContentProvider {
                 return InnoStaVa_data.CONTENT_TYPE;
             case QUESTION_DATA_ITEM:
                 return InnoStaVa_data.CONTENT_ITEM_TYPE;
-            case ESM_DATA_DIR:
-                return ESM_data.CONTENT_TYPE;
-            case ESM_DATA_ITEM:
-                return ESM_data.CONTENT_ITEM_TYPE;
+            case NOTIFICATION_DATA_DIR:
+                return Sent_Notification_data.CONTENT_TYPE;
+            case NOTIFICATION_DATA_ITEM:
+                return Sent_Notification_data.CONTENT_ITEM_TYPE;
             default:
                 throw new IllegalArgumentException("Unknown URI " + uri);
         }
@@ -229,10 +229,10 @@ public class Provider extends ContentProvider {
                     return dataUri;
                 }
                 throw new SQLException("Failed to insert row into " + uri);
-            case ESM_DATA_DIR:
-                _id = database.insert(DATABASE_TABLES[1], ESM_data.DEVICE_ID, values);
+            case NOTIFICATION_DATA_DIR:
+                _id = database.insert(DATABASE_TABLES[1], Sent_Notification_data.DEVICE_ID, values);
                 if (_id > 0) {
-                    Uri dataUri = ContentUris.withAppendedId(ESM_data.CONTENT_URI, _id);
+                    Uri dataUri = ContentUris.withAppendedId(Sent_Notification_data.CONTENT_URI, _id);
                     getContext().getContentResolver().notifyChange(dataUri, null);
                     return dataUri;
                 }
@@ -257,7 +257,7 @@ public class Provider extends ContentProvider {
             case QUESTION_DATA_DIR:
                 count = database.delete(DATABASE_TABLES[0], selection, selectionArgs);
                 break;
-            case ESM_DATA_DIR:
+            case NOTIFICATION_DATA_DIR:
                 count = database.delete(DATABASE_TABLES[1], selection, selectionArgs);
                 break;
             default:
@@ -281,7 +281,7 @@ public class Provider extends ContentProvider {
             case QUESTION_DATA_DIR:
                 count = database.update(DATABASE_TABLES[0], values, selection, selectionArgs);
                 break;
-            case ESM_DATA_DIR:
+            case NOTIFICATION_DATA_DIR:
                 count = database.update(DATABASE_TABLES[1], values, selection, selectionArgs);
                 break;
 

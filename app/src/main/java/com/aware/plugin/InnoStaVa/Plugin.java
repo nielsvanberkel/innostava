@@ -34,6 +34,8 @@ public class Plugin extends Aware_Plugin {
     private static String previousSentLocation = "unknown";
     private static long location_changed = System.currentTimeMillis();
 
+    private static long last_sent_notification;
+
     private EsmContextReceiver esmContextReceiver;
     private class EsmContextReceiver extends BroadcastReceiver {
         @Override
@@ -51,7 +53,8 @@ public class Plugin extends Aware_Plugin {
                 }
                 // if a new location and not the same as where previous was sent
                 if (!new_location.equals(previousSentLocation)
-                        && !new_location.equals(location)) {
+                        && !new_location.equals(location)
+                        && (System.currentTimeMillis() - last_sent_notification) >= 3600000 ) {
                     new Handler().postDelayed(new ESMCheckRunnable(new_location), ESM_TRIGGER_THRESHOLD_MILLIS);
                 }
                 if (!new_location.equals(location)) {
@@ -77,6 +80,7 @@ public class Plugin extends Aware_Plugin {
                     && !previousSentLocation.equals(checked_location)) {
                 // if all conditions match, send esm
                 previousSentLocation = checked_location;
+                last_sent_notification = System.currentTimeMillis();
                 sendESM();
             }
         }
@@ -152,10 +156,10 @@ public class Plugin extends Aware_Plugin {
         notificationManager.notify(123, notification.build());
 
         ContentValues vals = new ContentValues();
-        vals.put(Provider.ESM_data.LOCATION, location);
-        vals.put(Provider.ESM_data.TIMESTAMP, System.currentTimeMillis());
-        vals.put(Provider.ESM_data.DEVICE_ID, Aware.getSetting(this, Aware_Preferences.DEVICE_ID));
-        getContentResolver().insert(Provider.ESM_data.CONTENT_URI, vals);
+        vals.put(Provider.Sent_Notification_data.LOCATION, location);
+        vals.put(Provider.Sent_Notification_data.TIMESTAMP, System.currentTimeMillis());
+        vals.put(Provider.Sent_Notification_data.DEVICE_ID, Aware.getSetting(this, Aware_Preferences.DEVICE_ID));
+        getContentResolver().insert(Provider.Sent_Notification_data.CONTENT_URI, vals);
 
         // cancel notification after 5 mins
         new Handler().postDelayed(new Runnable() {
@@ -165,6 +169,7 @@ public class Plugin extends Aware_Plugin {
                 // Will display the notification in the notification bar
                 notificationManager.cancel(123);
             }
+            // automatically dismiss after 5 minutes
         },300000);
     }
 
@@ -174,6 +179,7 @@ public class Plugin extends Aware_Plugin {
         super.onCreate();
 
         TAG = "AWARE::" + getResources().getString(R.string.app_name);
+        Log.d(TAG, "started plugin");
 
         context = this;
 //        Aware.setSetting(this, Aware_Preferences.DEBUG_FLAG, false);
@@ -217,7 +223,7 @@ public class Plugin extends Aware_Plugin {
             TABLES_FIELDS = Provider.TABLES_FIELDS;
             CONTEXT_URIS = new Uri[]{
                     Provider.InnoStaVa_data.CONTENT_URI,
-                    Provider.ESM_data.CONTENT_URI
+                    Provider.Sent_Notification_data.CONTENT_URI
             };
 
 //            myReceiver = new MyReceiver();
@@ -270,6 +276,25 @@ public class Plugin extends Aware_Plugin {
             permissions.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(permissions);
         }
+
+        // fetch latest location and notification from database if service was rebooted
+        Cursor cur = getContentResolver().query(com.aware.plugin.bluetooth_beacon_detect.Provider.NearestBeacon_Data.CONTENT_URI, null, null, null, "TIMESTAMP DESC LIMIT 1");
+        if (cur != null && cur.moveToFirst()) {
+            location = cur.getString(cur.getColumnIndex(com.aware.plugin.bluetooth_beacon_detect.Provider.NearestBeacon_Data.MAC_ADDRESS));
+            location_changed = cur.getLong(cur.getColumnIndex(com.aware.plugin.bluetooth_beacon_detect.Provider.NearestBeacon_Data.TIMESTAMP));
+            cur.close();
+        }
+        else {
+            location = "unknown";
+            location_changed = 0;
+        }
+
+        Cursor cur2 = getContentResolver().query(Provider.Sent_Notification_data.CONTENT_URI, null, null, null, "TIMESTAMP DESC LIMIT 1");
+        if (cur2 != null && cur2.moveToFirst()) {
+            last_sent_notification = cur2.getLong(cur2.getColumnIndex(Provider.Sent_Notification_data.TIMESTAMP));
+            cur2.close();
+        }
+        else last_sent_notification = 0;
 
         return super.onStartCommand(intent, flags, startId);
     }
