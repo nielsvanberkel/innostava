@@ -80,7 +80,6 @@ public class Plugin extends Aware_Plugin {
                     && !previousSentLocation.equals(checked_location)) {
                 // if all conditions match, send esm
                 previousSentLocation = checked_location;
-                last_sent_notification = System.currentTimeMillis();
                 sendESM();
             }
         }
@@ -288,13 +287,13 @@ public class Plugin extends Aware_Plugin {
             location = "unknown";
             location_changed = 0;
         }
-
-        Cursor cur2 = getContentResolver().query(Provider.Sent_Notification_data.CONTENT_URI, null, null, null, "TIMESTAMP DESC LIMIT 1");
-        if (cur2 != null && cur2.moveToFirst()) {
-            last_sent_notification = cur2.getLong(cur2.getColumnIndex(Provider.Sent_Notification_data.TIMESTAMP));
-            cur2.close();
-        }
-        else last_sent_notification = 0;
+//
+//        Cursor cur2 = getContentResolver().query(Provider.Sent_Notification_data.CONTENT_URI, null, null, null, "TIMESTAMP DESC LIMIT 1");
+//        if (cur2 != null && cur2.moveToFirst()) {
+//            last_sent_notification = cur2.getLong(cur2.getColumnIndex(Provider.Sent_Notification_data.TIMESTAMP));
+//            cur2.close();
+//        }
+//        else last_sent_notification = 0;
 
         return super.onStartCommand(intent, flags, startId);
     }
