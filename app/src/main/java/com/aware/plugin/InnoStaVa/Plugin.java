@@ -1,6 +1,7 @@
 package com.aware.plugin.InnoStaVa;
 
 import android.Manifest;
+import android.app.ActivityManager;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -30,7 +31,7 @@ import java.util.Calendar;
 public class Plugin extends Aware_Plugin {
     private static final int ESM_TRIGGER_THRESHOLD_MILLIS = 300000;
 
-    private static String location = "unknown";
+    public static String location = "unknown";
     private static String previousSentLocation = "unknown";
     private static long location_changed = System.currentTimeMillis();
 
@@ -273,7 +274,13 @@ public class Plugin extends Aware_Plugin {
 
             //Initialize our plugin's settings
             Aware.setSetting(this, Settings.STATUS_PLUGIN_INNOSTAVA, true);
+            Aware.setSetting(context, Applications.STATUS_AWARE_ACCESSIBILITY, true);
+            Aware.setSetting(context, Aware_Preferences.STATUS_APPLICATIONS, true);
 
+            Aware.startApplications(context);
+            Aware.startESM(context);
+
+            if (!isMyServiceRunning(ApplicationListener.class, this)) startService(new Intent(this, ApplicationListener.class));
         } else {
             Intent permissions = new Intent(this, PermissionsHandler.class);
             permissions.putExtra(PermissionsHandler.EXTRA_REQUIRED_PERMISSIONS, REQUIRED_PERMISSIONS);
@@ -301,6 +308,16 @@ public class Plugin extends Aware_Plugin {
 //        else last_sent_notification = 0;
 
         return super.onStartCommand(intent, flags, startId);
+    }
+
+    public static boolean isMyServiceRunning(Class<?> serviceClass, Context context) {
+        ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
     }
 //
 //    public class MyReceiver extends BroadcastReceiver {
