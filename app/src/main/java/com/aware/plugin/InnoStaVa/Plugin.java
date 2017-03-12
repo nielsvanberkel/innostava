@@ -277,7 +277,7 @@ public class Plugin extends Aware_Plugin {
             Aware.setSetting(context, Applications.STATUS_AWARE_ACCESSIBILITY, true);
             Aware.setSetting(context, Aware_Preferences.STATUS_APPLICATIONS, true);
 
-            Aware.startApplications(context);
+            //Aware.startApplications(context);
             Aware.startESM(context);
 
             if (!isMyServiceRunning(ApplicationListener.class, this)) startService(new Intent(this, ApplicationListener.class));
@@ -353,6 +353,6 @@ public class Plugin extends Aware_Plugin {
         Aware.stopPlugin(this, "com.aware.plugin.google.activity_recognition");
         Aware.stopPlugin(this, "com.aware.plugin.bluetooth_beacon_detect");
         //Stop AWARE
-        Aware.stopAWARE();
+        Aware.stopAWARE(this);
     }
 }
