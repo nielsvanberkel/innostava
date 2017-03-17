@@ -127,6 +127,12 @@ public class InnoStaVaESM extends Activity {
         final CheckBox v3_3 = (CheckBox) findViewById(R.id.v3_3);
         final CheckBox v3_4 = (CheckBox) findViewById(R.id.v3_4);
         final CheckBox v3_5 = (CheckBox) findViewById(R.id.v3_5);
+        final CheckBox v3_6 = (CheckBox) findViewById(R.id.v3_6);
+        final CheckBox v3_7 = (CheckBox) findViewById(R.id.v3_7);
+        final CheckBox v3_8 = (CheckBox) findViewById(R.id.v3_8);
+        final CheckBox v3_9 = (CheckBox) findViewById(R.id.v3_9);
+        final CheckBox v3_10 = (CheckBox) findViewById(R.id.v3_10);
+
 
         final Button v3_next = (Button) findViewById(R.id.v3_next);
         v3_next.setOnClickListener(new View.OnClickListener() {
@@ -152,6 +158,21 @@ public class InnoStaVaESM extends Activity {
                 } if (v3_5.isChecked()) {
                     something_checked = true;
                     v3_answer.add(v3_5.getText().toString() + ";");
+                } if (v3_6.isChecked()) {
+                    something_checked = true;
+                    v3_answer.add(v3_6.getText().toString() + ";");
+                } if (v3_7.isChecked()) {
+                    something_checked = true;
+                    v3_answer.add(v3_7.getText().toString() + ";");
+                } if (v3_8.isChecked()) {
+                    something_checked = true;
+                    v3_answer.add(v3_8.getText().toString() + ";");
+                } if (v3_9.isChecked()) {
+                    something_checked = true;
+                    v3_answer.add(v3_9.getText().toString() + ";");
+                } if (v3_10.isChecked()) {
+                    something_checked = true;
+                    v3_answer.add(v3_10.getText().toString() + ";");
                 }
 
                 if (something_checked == true) {

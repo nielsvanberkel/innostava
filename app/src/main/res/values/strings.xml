@@ -18,11 +18,15 @@
     <string name="v2_4">Tapaaminen toisaalla</string>
 
     <string name="v3_1">Oma työpiste</string>
-    <string name="v3_2">Jonkun toisen työpiste isossa huoneessa</string>
-    <string name="v3_3">Jonkun toisen työpiste pienessä huoneessa</string>
-    <string name="v3_4">Yhteinen taukotila aulassa</string>
-    <string name="v3_5">Kokoushuone</string>
-    <string name="v3_6">Valkotaulu</string>
+    <string name="v3_2">Metsä</string>
+    <string name="v3_3">Laavu</string>
+    <string name="v3_4">Puhelinkoppi</string>
+    <string name="v3_5">Puro</string>
+    <string name="v3_6">Tunturimaja</string>
+    <string name="v3_7">Puisto</string>
+    <string name="v3_8">Puiston penkki</string>
+    <string name="v3_9">Yhteinen taukotila aulassa</string>
+    <string name="v3_10">Kokoushuone</string>
 
     <string name="v4_1">Juha Aalto</string>
     <string name="v4_2">Pekka Korpela</string>

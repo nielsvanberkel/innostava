@@ -41,6 +41,8 @@ public class ApplicationListener extends Service {
         public void onReceive(Context context, Intent intent) {
             if (context == null) context = context;
 
+            Log.d("Niels", "onReceive broad cast receiver");
+
             if (intent.getAction().equals(Applications.ACTION_AWARE_APPLICATIONS_FOREGROUND)) {
                 Log.d("Niels", "Application foreground");
 

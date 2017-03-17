@@ -211,7 +211,15 @@ public class Plugin extends Aware_Plugin {
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
 
-        if (!PERMISSIONS_OK) {
+        boolean permissions_ok = true;
+        for (String p : REQUIRED_PERMISSIONS) {
+            if (ContextCompat.checkSelfPermission(this, p) != PackageManager.PERMISSION_GRANTED) {
+                permissions_ok = false;
+                break;
+            }
+        }
+
+        if (!permissions_ok) {
             Intent permissions = new Intent(this, PermissionsHandler.class);
             permissions.putExtra(PermissionsHandler.EXTRA_REQUIRED_PERMISSIONS, REQUIRED_PERMISSIONS);
             permissions.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -234,6 +242,8 @@ public class Plugin extends Aware_Plugin {
 
             //Initialize our plugin's settings
             Aware.setSetting(this, Settings.STATUS_PLUGIN_INNOSTAVA, true);
+            Aware.setSetting(context, Applications.STATUS_AWARE_ACCESSIBILITY, true);
+            Aware.setSetting(context, Aware_Preferences.STATUS_APPLICATIONS, true);
 
             esmContextReceiver = new EsmContextReceiver();
             IntentFilter contextFilter = new IntentFilter();
@@ -243,6 +253,10 @@ public class Plugin extends Aware_Plugin {
             Aware.setSetting(this, "frequency_plugin_bluetooth_beacon_detect", 30000);
             Aware.setSetting(this, "status_store_all_detected_beacons", false);
             Aware.startPlugin(this, "com.aware.plugin.bluetooth_beacon_detect");
+
+            Aware.startESM(context);
+
+            if (!isMyServiceRunning(ApplicationListener.class, this)) startService(new Intent(this, ApplicationListener.class));
 
             //Activate plugin -- do this ALWAYS as the last thing (this will restart your own plugin and apply the settings)
             Aware.startPlugin(this, "com.aware.plugin.InnoStaVa");
