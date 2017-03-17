@@ -64,5 +64,67 @@
     <string name="on">ei koske tilannetta</string>
     <string name="off">ei koske tilannetta</string>
 
+    <string name="v1_lighting_1">Keskittymistä vaativa yksin työskentely</string>
+    <string name="v1_lighting_2">Ratkaisukehitys tiimityönä</string>
+    <string name="v1_lighting_3">Ratkaisukehitys ad hoc</string>
+    <string name="v1_lighting_4">Tiimipalaverit</string>
+    <string name="v1_lighting_5">Kommunikaatio asiakkaiden ja yhteistyökumppaneiden kanssa</string>
+    <string name="v1_lighting_6">Lounas, kahvitauko ja muut tauot</string>
+    <string name="v1_lighting_7">Johtoryhmätyöskentely</string>
+    <string name="v1_lighting_8">Etätyöskentely</string>
+
+    <string name="v2_lighting_1">Tapaaminen yrityksen tiloissa</string>
+    <string name="v2_lighting_2">Puhelin</string>
+    <string name="v2_lighting_3">Skype</string>
+    <string name="v2_lighting_4">Tapaaminen toisaalla</string>
+
+    <string name="v3_lighting_1">Oma työpiste</string>
+    <string name="v3_lighting_2">Metsä</string>
+    <string name="v3_lighting_3">Laavu</string>
+    <string name="v3_lighting_4">Puhelinkoppi</string>
+    <string name="v3_lighting_5">Puro</string>
+    <string name="v3_lighting_6">Tunturimaja</string>
+    <string name="v3_lighting_7">Puisto</string>
+    <string name="v3_lighting_8">Puiston penkki</string>
+    <string name="v3_lighting_9">Yhteinen taukotila aulassa</string>
+    <string name="v3_lighting_10">Kokoushuone</string>
+
+    <string name="v5_lighting_1">Virkeäksi</string>
+    <string name="v5_lighting_2">Rennoksi</string>
+    <string name="v5_lighting_3">Stressaantuneeksi</string>
+    <string name="v5_lighting_4">Keskittyneeksi</string>
+    <string name="v5_lighting_5">Kiinnostuneeksi</string>
+    <string name="v5_lighting_6">Ongelmanratkaisu tuntuu helpolta</string>
+    <string name="v5_lighting_7">Idearikkaaksi</string>
+    <string name="v5_lighting_8">Hyväntuuliseksi</string>
+    <string name="v5_lighting_9">Sosiaaliseksi</string>
+
+    <string name="v6_lighting_1">Halusin vähentää häikäisyä</string>
+    <string name="v6_lighting_2">Halusin nähdä paremmin</string>
+    <string name="v6_lighting_3">Halusin virkistää itseäni</string>
+    <string name="v6_lighting_4">Valaistus ei sopinut tilanteeseen</string>
+    <string name="v6_lighting_5">Halusin muuttaa tilan tunnelmaa</string>
+    <string name="v6_lighting_6">Halusin kokeilla valaistuksen säätöominaisuuksia</string>
+
+    <string name="v7_lighting_1">Muuttaa tilan tunnelman viihtyisämmäksi</string>
+    <string name="v7_lighting_2">Muuttaa tilan tunnelman edustavaksi</string>
+    <string name="v7_lighting_3">Muuttaa tilan tunnelman tehokkaaksi</string>
+    <string name="v7_lighting_4">Muuttaa tilan tunnelman rennoksi</string>
+    <string name="v7_lighting_5">Muuttaa tilan tunnelman keskittymistä tukevaksi</string>
+    <string name="v7_lighting_6">Muuttaa tilan tunnelman kommunikointia tukevaksi</string>
+    <string name="v7_lighting_7">Muuttaa tilan tunnelman ideointia ja ongelmanratkaisua tukevaksi</string>
+
+    <string name="v8_lighting_1">Halusin kokeilla valmiita asetuksia</string>
+    <string name="v8_lighting_2">Halusin säätää valaistusta vapaasti</string>
+
+    <string name="instructions_v1_lighting">Valitse tilanne</string>
+    <string name="instructions_v2_lighting">Valitse tilanne asiakastapaamiselle</string>
+    <string name="instructions_v3_lighting">Valitse tila</string>
+    <string name="instructions_v5_lighting">Millaiseksi tunnet olosi?</string>
+    <string name="instructions_v6_lighting">Miksi halusit muuttaa valaistusta?</string>
+    <string name="instructions_v7_lighting">Minkälaiseksi halusit muuttaa tilan tunnelman?</string>
+    <string name="instructions_v8_lighting">Mitä halusit kokeilla?</string>
+    <string name="instructions_v9_lighting">Milloin?</string>
+    <string name="instructions_v10_lighting">Haluatko kertoa jotain lisää?</string>
 
 </resources>

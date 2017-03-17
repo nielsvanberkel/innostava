@@ -15,7 +15,7 @@
             android:layout_height="wrap_content"
             android:gravity="center_horizontal"
             android:padding="10dp"
-            android:text="@string/instructions_v2"
+            android:text="@string/instructions_v1_lighting"
             android:textAppearance="@android:style/TextAppearance.Large" />
 
         <LinearLayout
@@ -27,36 +27,63 @@
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:layout_gravity="center_horizontal"
-                android:id="@+id/v2_radio_group">
+                android:id="@+id/v1_radio_group">
 
                 <RadioButton
-                    android:text="@string/v2_1"
+                    android:text="@string/v1_lighting_1"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:id="@+id/v2_1"
+                    android:id="@+id/v1_1"
                     android:layout_weight="1" />
 
                 <RadioButton
-                    android:text="@string/v2_2"
+                    android:text="@string/v1_lighting_2"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:id="@+id/v2_2"
+                    android:id="@+id/v1_2"
                     android:layout_weight="1" />
 
                 <RadioButton
-                    android:text="@string/v2_3"
+                    android:text="@string/v1_lighting_3"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:id="@+id/v2_3"
+                    android:id="@+id/v1_3"
                     android:layout_weight="1" />
 
                 <RadioButton
-                    android:text="@string/v2_4"
+                    android:text="@string/v1_lighting_4"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:id="@+id/v2_4"
+                    android:id="@+id/v1_4"
                     android:layout_weight="1" />
 
+                <RadioButton
+                    android:text="@string/v1_lighting_5"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/v1_5"
+                    android:layout_weight="1" />
+
+                <RadioButton
+                    android:text="@string/v1_lighting_6"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/v1_6"
+                    android:layout_weight="1" />
+
+                <RadioButton
+                    android:text="@string/v1_lighting_7"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/v1_7"
+                    android:layout_weight="1" />
+
+                <RadioButton
+                    android:text="@string/v1_lighting_8"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/v1_8"
+                    android:layout_weight="1" />
             </RadioGroup>
 
         </LinearLayout>
@@ -70,7 +97,7 @@
             android:paddingRight="10dp">
 
             <Button
-                android:id="@+id/v2_next"
+                android:id="@+id/v1_next"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="2"
