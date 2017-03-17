@@ -203,15 +203,14 @@ public class Plugin extends Aware_Plugin {
         REQUIRED_PERMISSIONS.add(Manifest.permission.ACCESS_COARSE_LOCATION);
         REQUIRED_PERMISSIONS.add(Manifest.permission.ACCESS_FINE_LOCATION);
 
-        boolean permissions_ok = true;
-        for (String p : REQUIRED_PERMISSIONS) {
-            if (ContextCompat.checkSelfPermission(this, p) != PackageManager.PERMISSION_GRANTED) {
-                permissions_ok = false;
-                break;
-            }
-        }
+    }
 
-        if (!permissions_ok) {
+    //This function gets called every 5 minutes by AWARE to make sure this plugin is still running.
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        super.onStartCommand(intent, flags, startId);
+
+        if (!PERMISSIONS_OK) {
             Intent permissions = new Intent(this, PermissionsHandler.class);
             permissions.putExtra(PermissionsHandler.EXTRA_REQUIRED_PERMISSIONS, REQUIRED_PERMISSIONS);
             permissions.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -230,55 +229,25 @@ public class Plugin extends Aware_Plugin {
                     Provider.Sent_Notification_data.CONTENT_URI
             };
 
-//            myReceiver = new MyReceiver();
-//            IntentFilter intentFilter = new IntentFilter();
-//            intentFilter.addAction("ACTION_INNOSTAVA_ESM");
-//            registerReceiver(myReceiver, intentFilter);
+            DEBUG = Aware.getSetting(this, Aware_Preferences.DEBUG_FLAG).equals("true");
+
+            //Initialize our plugin's settings
+            Aware.setSetting(this, Settings.STATUS_PLUGIN_INNOSTAVA, true);
 
             esmContextReceiver = new EsmContextReceiver();
             IntentFilter contextFilter = new IntentFilter();
-            contextFilter.addAction(com.aware.plugin.google.activity_recognition.Plugin.ACTION_AWARE_GOOGLE_ACTIVITY_RECOGNITION);
             contextFilter.addAction(com.aware.plugin.bluetooth_beacon_detect.Plugin.ACTION_AWARE_PLUGIN_BT_BEACON_NEAREST);
             registerReceiver(esmContextReceiver, contextFilter);
 
-            // start aware and plugins
-            Aware.startAWARE(this);
-
-            Aware.setSetting(this, "frequency_plugin_google_activity_recognition", 60);
-            Aware.startPlugin(this, "com.aware.plugin.google.activity_recognition");
             Aware.setSetting(this, "frequency_plugin_bluetooth_beacon_detect", 30000);
             Aware.setSetting(this, "status_store_all_detected_beacons", false);
             Aware.startPlugin(this, "com.aware.plugin.bluetooth_beacon_detect");
 
             //Activate plugin -- do this ALWAYS as the last thing (this will restart your own plugin and apply the settings)
             Aware.startPlugin(this, "com.aware.plugin.InnoStaVa");
-        }
-    }
 
-    //This function gets called every 5 minutes by AWARE to make sure this plugin is still running.
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-
-        boolean permissions_ok = true;
-        for (String p : REQUIRED_PERMISSIONS) {
-            if (ContextCompat.checkSelfPermission(this, p) != PackageManager.PERMISSION_GRANTED) {
-                permissions_ok = false;
-                break;
-            }
-        }
-
-        if (permissions_ok) {
-            //Check if the user has toggled the debug messages
-            DEBUG = Aware.getSetting(this, Aware_Preferences.DEBUG_FLAG).equals("true");
-
-            //Initialize our plugin's settings
-            Aware.setSetting(this, Settings.STATUS_PLUGIN_INNOSTAVA, true);
-
-        } else {
-            Intent permissions = new Intent(this, PermissionsHandler.class);
-            permissions.putExtra(PermissionsHandler.EXTRA_REQUIRED_PERMISSIONS, REQUIRED_PERMISSIONS);
-            permissions.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(permissions);
+            // start aware and plugins
+            Aware.startAWARE(this);
         }
 
         // fetch latest location and notification from database if service was rebooted
@@ -333,9 +302,10 @@ public class Plugin extends Aware_Plugin {
     public void onDestroy() {
         super.onDestroy();
         unregisterReceiver(esmContextReceiver);
-        Aware.stopPlugin(this, "com.aware.plugin.google.activity_recognition");
         Aware.stopPlugin(this, "com.aware.plugin.bluetooth_beacon_detect");
+        Aware.setSetting(this, Settings.STATUS_PLUGIN_INNOSTAVA, false);
+
         //Stop AWARE
-        Aware.stopAWARE();
+        Aware.stopAWARE(this);
     }
 }
