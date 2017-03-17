@@ -43,11 +43,7 @@ public class InnoStaVa extends AppCompatActivity {
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(com.aware.plugin.google.activity_recognition.Plugin.ACTION_AWARE_GOOGLE_ACTIVITY_RECOGNITION)) {
-                activity = intent.getIntExtra(com.aware.plugin.google.activity_recognition.Plugin.EXTRA_ACTIVITY, -1);
-                if (current_activity != null) current_activity.setText("Current activity: " + Utils.getActivityName(intent.getIntExtra(com.aware.plugin.google.activity_recognition.Plugin.EXTRA_ACTIVITY, -1)));
-            }
-            else if (intent.getAction().equals(com.aware.plugin.bluetooth_beacon_detect.Plugin.ACTION_AWARE_PLUGIN_BT_BEACON_NEAREST)) {
+            if (intent.getAction().equals(com.aware.plugin.bluetooth_beacon_detect.Plugin.ACTION_AWARE_PLUGIN_BT_BEACON_NEAREST)) {
                 location = intent.getStringExtra(Provider.NearestBeacon_Data.MAC_ADDRESS);
                 if (current_location != null) current_location.setText("Current location: " + intent.getStringExtra(Provider.NearestBeacon_Data.MAC_ADDRESS));
             }
@@ -74,7 +70,6 @@ public class InnoStaVa extends AppCompatActivity {
 
         br = new ActivityLocationReceiver();
         IntentFilter alfilter = new IntentFilter();
-        alfilter.addAction(com.aware.plugin.google.activity_recognition.Plugin.ACTION_AWARE_GOOGLE_ACTIVITY_RECOGNITION);
         alfilter.addAction(com.aware.plugin.bluetooth_beacon_detect.Plugin.ACTION_AWARE_PLUGIN_BT_BEACON_NEAREST);
         registerReceiver(br, alfilter);
 

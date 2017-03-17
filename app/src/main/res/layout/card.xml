@@ -10,8 +10,7 @@
         android:id="@+id/intro_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Thanks for participating in this study."
-        android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+        android:text="Thanks for participating in this study." />
 
     <TextView
         android:id="@+id/device_id"
